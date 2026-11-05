@@ -1,5 +1,5 @@
 using System; using System.Linq; using System.Reflection;
-// Mode 1 : SigTool <dir> <dll> <Type...> -> signatures. Mode 2 : SigTool <dir> <dll> --find <NomMethode> -> types qui la declarent.
+// Mode 1: SigTool <dir> <dll> <Type...> -> signatures. Mode 2: SigTool <dir> <dll> --find <MethodName> -> types declaring it.
 var dir = args[0]; var dll = args[1];
 var resolver = new PathAssemblyResolver(System.IO.Directory.GetFiles(dir, "*.dll").Concat(System.IO.Directory.GetFiles(System.IO.Path.Combine(dir, "..", "core"), "*.dll")).Concat(System.IO.Directory.GetFiles(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(), "*.dll")).GroupBy(System.IO.Path.GetFileName).Select(g => g.First()));
 using var mlc = new MetadataLoadContext(resolver, "mscorlib");

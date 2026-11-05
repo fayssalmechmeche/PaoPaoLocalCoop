@@ -10,7 +10,7 @@ public static class PuppetVisuals
     private static float _timer;
     private static int _ticks;
 
-    // Reactive uniquement le modele du chat (pas les accessoires caches comme epee, masque...).
+    // Re-enables only the cat model (not hidden accessories such as sword, mask...).
     public static void DumpAndFix(Transform root)
     {
         var log = Plugin.Instance.Log;
@@ -23,7 +23,7 @@ public static class PuppetVisuals
         catch (Exception e) { log.LogError("VISUEL a echoue : " + e); }
     }
 
-    // Surveille chaque seconde (pendant ~15 s) l'etat de visibilite du joueur 2 par rapport au joueur 1.
+    // Checks every second (for ~15 s) player 2's visibility state relative to player 1.
     public static void Monitor(float dt, Character p2, Character host)
     {
         if (_ticks >= 15) return;

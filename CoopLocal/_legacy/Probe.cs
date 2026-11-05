@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Composant Unity injecte dans le jeu. Il ne contient que Update() : toute la logique est dans ProbeHelper.
+// Unity component injected into the game. It only contains Update(): all the logic is in ProbeHelper.
 public class Probe : MonoBehaviour
 {
     public Probe(IntPtr ptr) : base(ptr) { }

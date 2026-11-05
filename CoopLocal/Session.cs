@@ -10,24 +10,24 @@ using Unity.Netcode;
 
 namespace CoopLocal;
 
-// Demarre la partie coop en connexion directe sur ce PC, avec l'outil de test multijoueur
-// des developpeurs (FastStart) :
-//  - hote   : charge le monde choisi dans le menu (ou le dernier monde joue en demarrage automatique),
-//             ouvre la partie, puis le signale a l'autre fenetre ;
-//  - client : attend que l'autre fenetre ait ouvert une partie, puis la rejoint.
+// Starts the co-op game over a direct connection on this PC, using the developers' multiplayer
+// test tool (FastStart):
+//  - host  : loads the world selected in the menu (or the last played world on automatic start),
+//             opens the game, then signals the other window;
+//  - client: waits until the other window has opened a game, then joins it.
 public static class Session
 {
     private enum Step { Idle, WaitMenu, LoadingWorld, Started, LoadingMap, Done }
     public enum JoinState { Idle, WaitingHost, Connecting, Connected, Failed }
 
-    private const float MenuDelay = 15f;          // demarrage automatique : laisse le menu finir de charger
+    private const float MenuDelay = 15f;          // automatic start: lets the menu finish loading
     private const float WorldLoadTimeout = 20f;
-    private const float WaitHostAuto = 180f;      // demarrage automatique : l'hote a besoin de ~30 s
+    private const float WaitHostAuto = 180f;      // automatic start: the host needs ~30 s
     private const float WaitHostMenu = 120f;
     private const float ConnectTimeout = 20f;
     private const int MaxTries = 3;
 
-    // Signaux visibles par l'autre fenetre (meme session Windows).
+    // Signals visible to the other window (same Windows session).
     private const string HostReadySignal = "Local\\PaoPaoCoopLocalPartieOuverte";
 
     private static Step _step = Step.Idle;
@@ -41,7 +41,7 @@ public static class Session
     private static float _joinT;
 
     public static JoinState Join { get; private set; } = JoinState.Idle;
-    public static string Error { get; private set; } = ""; // derniere erreur a afficher au joueur (vide = aucune)
+    public static string Error { get; private set; } = ""; // last error to show the player (empty = none)
     public static bool HostBusy => _step != Step.Idle && _step != Step.Done;
 
     private static BepInEx.Logging.ManualLogSource Log => Plugin.Instance.Log;
@@ -84,9 +84,9 @@ public static class Session
         return true;
     }
 
-    // ---------------------------------------------------------------- hote
+    // ---------------------------------------------------------------- host
 
-    // Appele par le menu (Coop locale > Heberger) une fois le monde choisi ou cree.
+    // Called by the menu (Local co-op > Host) once the world is selected or created.
     public static bool HostWorld(string worldId, string worldName)
     {
         if (HostBusy || Join == JoinState.Connecting || Join == JoinState.Connected) return false;
@@ -110,9 +110,9 @@ public static class Session
                 FastStart.ResolveDependencies();
                 var wsm = FastStart._worldStateManager;
                 if (wsm == null || FastStart._connectionModule == null) { _t = MenuDelay - 2f; return; }
-                // On lit le dernier monde joue directement dans les donnees de sauvegarde :
-                // la version "Nullable" de WorldStateManager.LastPlayedWorld est mal traduite par
-                // la couche IL2CPP (les champs sont decales : on recevait le nom a la place de l'id).
+                // Read the last played world directly from the save data:
+                // the "Nullable" version of WorldStateManager.LastPlayedWorld is mistranslated by
+                // the IL2CPP layer (fields are shifted: we received the name instead of the id).
                 var world = wsm._worldCollectionData?.LastPlayedWorld;
                 if (world == null || string.IsNullOrEmpty(world.WorldId))
                 {
@@ -139,9 +139,9 @@ public static class Session
             case Step.Started:
                 var nm = NetworkManager.Singleton;
                 if (nm == null || !nm.IsHost) { TimedOut(15f, "la partie ne s'est pas ouverte"); return; }
-                // La partie accepte les connexions : on previent l'autre fenetre.
+                // The game accepts connections: notify the other window.
                 _readySignal ??= new EventWaitHandle(false, EventResetMode.ManualReset, HostReadySignal);
-                // Comme l'outil des developpeurs : une fois la partie ouverte, on charge la carte de jeu.
+                // Like the developers' tool: once the game is open, load the game map.
                 _loader = Container.Resolve<IGameStateLoader>();
                 Log.LogInfo($"HOTE : partie ouverte, chargement de la carte (etat actuel={_loader.CurrentState})");
                 if (_loader.CurrentState != GameStateType.Gameplay) _loader.TransitionTo(GameStateType.Gameplay);
@@ -149,7 +149,7 @@ public static class Session
                 return;
 
             case Step.LoadingMap:
-                // Une fois la carte chargee, on demarre la session : c'est ce qui cree les personnages.
+                // Once the map is loaded, start the session: this is what creates the characters.
                 if (_loader.CurrentState != GameStateType.Gameplay || !_loader.Ready) { TimedOut(60f, "la carte ne se charge pas"); return; }
                 var session = UnityEngine.Object.FindObjectOfType<NetworkSessionInstance>();
                 if (session == null) { TimedOut(60f, "pas de session"); return; }
@@ -173,7 +173,7 @@ public static class Session
         return true;
     }
 
-    // Appele par le menu (Coop locale > Rejoindre), ou au demarrage automatique.
+    // Called by the menu (Local co-op > Join), or on automatic start.
     public static void StartJoin(float waitHost = WaitHostMenu)
     {
         if (HostBusy) return;
@@ -221,7 +221,7 @@ public static class Session
                 if (_joinT < ConnectTimeout) return;
                 if (nm != null && (nm.IsClient || nm.ShutdownInProgress))
                 {
-                    if (_joinT < ConnectTimeout * 2) return; // tentative encore en cours
+                    if (_joinT < ConnectTimeout * 2) return; // attempt still in progress
                     nm.Shutdown();
                     return;
                 }

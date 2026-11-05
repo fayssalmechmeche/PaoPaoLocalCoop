@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Point d'entree du mod. Le lanceur ouvre le jeu deux fois (voir Role) :
-//   fenetre 1 a gauche, fenetre 2 a droite ; chaque joueur choisit "Coop locale" dans le menu,
-//   ou bien (demarrage automatique) la fenetre 1 heberge et la fenetre 2 rejoint d'elle-meme.
-// Sans ces options (lancement normal depuis Steam), le mod ne fait rien.
+// Mod entry point. The launcher opens the game twice (see Role):
+//   window 1 on the left, window 2 on the right; each player picks "Local co-op" in the menu,
+//   or (automatic start) window 1 hosts and window 2 joins on its own.
+// Without these options (normal launch from Steam), the mod does nothing.
 [BepInPlugin("local.paopao.cooplocal", "CoopLocal", "0.3.0")]
 public class Plugin : BasePlugin
 {
@@ -34,8 +34,8 @@ public class Plugin : BasePlugin
     }
 }
 
-// Composant Unity qui fait tourner le mod a chaque image.
-// Il ne contient que Update() : toute la logique est dans des classes statiques.
+// Unity component that runs the mod every frame.
+// It only contains Update(): all the logic is in static classes.
 public class Runner : MonoBehaviour
 {
     public Runner(IntPtr ptr) : base(ptr) { }

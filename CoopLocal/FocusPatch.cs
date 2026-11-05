@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Le jeu fige le personnage de l'hote quand sa fenetre n'a pas le focus.
-// En coop locale, les deux fenetres doivent toujours se comporter comme si elles l'avaient.
+// The game freezes the host's character when its window does not have focus.
+// In local co-op, both windows must always behave as if they had it.
 public static class FocusPatch
 {
     public static void Apply()

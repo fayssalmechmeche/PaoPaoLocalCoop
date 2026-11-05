@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace CoopLocal;
 
-// Dump detaille de types precis, cherches dans plusieurs assemblages.
+// Detailed dump of specific types, searched across several assemblies.
 public static class Sigs3
 {
     public static void Dump()

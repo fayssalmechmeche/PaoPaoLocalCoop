@@ -1,4 +1,4 @@
-﻿# Capture l'ecran avec les fenetres du jeu au premier plan. Usage : capture.ps1 <fichier.png> [largeur]
+﻿# Captures the screen with the game windows in the foreground. Usage: capture.ps1 <file.png> [width]
 param([string]$Out, [int]$Width = 1600)
 Add-Type -AssemblyName System.Drawing
 Add-Type -Name D -Namespace U -MemberDefinition '[DllImport("user32.dll")] public static extern bool SetProcessDPIAware(); [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr a, int x, int y, int w, int cy, uint f);'

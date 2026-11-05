@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace CoopLocal;
 
-// Liste les types (et membres des types "interessants") des assemblages lies au demarrage / plateforme / reseau.
+// Lists the types (and members of "interesting" types) of assemblies related to startup / platform / network.
 public static class Sigs2
 {
     public static void Dump()

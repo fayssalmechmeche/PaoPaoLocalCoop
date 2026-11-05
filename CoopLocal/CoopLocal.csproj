@@ -34,7 +34,7 @@
     <Reference Include="UnityEngine.AudioModule"><HintPath>$(GamePath)/BepInEx/interop/UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <ItemGroup>
-    <!-- Ancien code d'exploration (marionnette, sondes) : garde pour reference, non compile. -->
-    <Compile Remove="_ancien/**" />
+    <!-- Old exploration code (puppet, probes): kept for reference, not compiled. -->
+    <Compile Remove="_legacy/**" />
   </ItemGroup>
 </Project>

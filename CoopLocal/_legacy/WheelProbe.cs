@@ -6,15 +6,15 @@ using UnityEngine.InputSystem;
 
 namespace CoopLocal;
 
-// Releve de diagnostic (temporaire) pour la roue des outils : quand elle est ouverte, ce qu'elle lit
-// comme direction, et quelle manette Unity considere comme "la manette actuelle".
+// Diagnostic report (temporary) for the tool wheel: while it is open, what it reads
+// as direction, and which controller Unity considers "the current gamepad".
 public static class WheelProbe
 {
     private static float _timer;
     private static bool _bindingsLogged;
     private static InputService _svc;
 
-    // Note dans le journal les ouvertures demandees, refusees ou faites par le jeu.
+    // Logs the openings requested, refused or made by the game.
     public static void Apply()
     {
         try

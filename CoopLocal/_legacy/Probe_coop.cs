@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Releve de diagnostic (temporaire) : une ligne par seconde avec la manette, l'action "Move" du jeu,
-// la position du personnage local et le nombre d'images par seconde.
+// Diagnostic report (temporary): one line per second with the controller, the game's "Move" action,
+// the local character's position and the frame rate.
 public static class Probe
 {
     private static float _timer;

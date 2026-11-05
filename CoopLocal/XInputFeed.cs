@@ -7,36 +7,36 @@ using UnityEngine.InputSystem.LowLevel;
 
 namespace CoopLocal;
 
-// Manette virtuelle de cette fenetre.
-// Unity ne lit plus les manettes Xbox d'une fenetre qui n'est pas au premier plan, et ses propres
-// lectures (figees) ecrasent ce qu'on lui transmet. On cree donc dans chaque fenetre une manette
-// virtuelle qui n'appartient qu'a ce joueur, et on la remplit avec l'etat publie par le relais
-// XInputRelay.exe (lance par le lanceur). Les vraies manettes sont coupees dans les deux fenetres.
+// This window's virtual gamepad.
+// Unity no longer reads Xbox controllers in a window that is not in the foreground, and its own
+// (frozen) reads overwrite what we send it. So each window gets a virtual gamepad
+// that belongs only to this player, filled with the state published by the
+// XInputRelay.exe relay (started by the launcher). Real controllers are disabled in both windows.
 public static unsafe class XInputFeed
 {
-    // Etat d'une manette standard de Unity (GamepadState, format 'GPAD', 28 octets) :
-    // boutons (4) + stick gauche (8) + stick droit (8) + gachette gauche (4) + gachette droite (4).
+    // State of a standard Unity gamepad (GamepadState, 'GPAD' format, 28 bytes):
+    // buttons (4) + left stick (8) + right stick (8) + left trigger (4) + right trigger (4).
     private static readonly int FormatGamepad = MakeFourCC('G', 'P', 'A', 'D');
     private static readonly int EventState = MakeFourCC('S', 'T', 'A', 'T');
     private const int StateSize = 28;
-    private const int EventSize = 24 + StateSize; // en-tete InputEvent (20) + format (4) + etat
+    private const int EventSize = 24 + StateSize; // InputEvent header (20) + format (4) + state
 
     private static IntPtr _buffer = IntPtr.Zero;
     private static bool _disabled;
     private static uint _lastPacket = uint.MaxValue;
     private static float _keepAlive;
 
-    public static Gamepad Pad;   // manette virtuelle de cette fenetre
-    public static int Slot = -1; // emplacement XInput (0 a 3) lu pour ce joueur
-    public static int Fed;       // nombre d'evenements transmis (pour le releve d'etat)
-    public static float LastActive = -100f; // dernier moment ou un bouton ou un stick a ete utilise
+    public static Gamepad Pad;   // this window's virtual gamepad
+    public static int Slot = -1; // XInput slot (0 to 3) read for this player
+    public static int Fed;       // number of events sent (for the state report)
+    public static float LastActive = -100f; // last time a button or stick was used
 
-    // Diagnostic : derniere lecture XInput brute.
+    // Diagnostics: last raw XInput read.
     public static uint LastCode = uint.MaxValue, LastPacket;
     public static short LastLX;
 
-    // Appele par Unity au debut de chaque mise a jour des commandes, avant les scripts du jeu :
-    // un appui applique ici est vu par le jeu comme "appuye a cette image" (sinon A etait rate).
+    // Called by Unity at the start of each input update, before the game's scripts:
+    // a press applied here is seen by the game as "pressed this frame" (otherwise A was missed).
     private static bool _hooked;
     private static float _lastTick;
     public static void Hook()
@@ -73,10 +73,10 @@ public static unsafe class XInputFeed
             LastCode = ReadState(Slot, out var st);
             LastPacket = st.PacketNumber;
             LastLX = st.ThumbLX;
-            if (LastCode != 0) return; // manette debranchee
+            if (LastCode != 0) return; // controller unplugged
 
             _keepAlive += dt;
-            if (st.PacketNumber == _lastPacket && _keepAlive < 0.5f) return; // rien n'a change
+            if (st.PacketNumber == _lastPacket && _keepAlive < 0.5f) return; // nothing changed
             _lastPacket = st.PacketNumber;
             _keepAlive = 0f;
             Send(st);
@@ -88,7 +88,7 @@ public static unsafe class XInputFeed
         }
     }
 
-    // Fenetre 1 (gauche) = 1re manette branchee, fenetre 2 = 2e (ou la seule s'il n'y en a qu'une : la fenetre 1 garde alors clavier/souris).
+    // Window 1 (left) = 1st connected controller, window 2 = 2nd (or the only one if there is just one: window 1 then keeps keyboard/mouse).
     private static float _slotCheck;
     private static void ChooseSlot()
     {
@@ -108,12 +108,12 @@ public static unsafe class XInputFeed
             Slot = slot;
             _lastPacket = uint.MaxValue;
             Plugin.Instance.Log.LogInfo(slot >= 0 ? $"Manette virtuelle : lit la manette XInput n°{slot}" : "Manette virtuelle : aucune manette pour ce joueur");
-            if (slot < 0) Send(default); // relache tout
+            if (slot < 0) Send(default); // release everything
         }
     }
 
-    // Lecture d'une manette. Dans le processus du jeu, XInput reste fige des que la fenetre a perdu
-    // le focus une fois : on lit donc l'etat publie par le relais. Sans relais, lecture directe.
+    // Reads a controller. In the game process, XInput stays frozen once the window has lost
+    // focus once: so we read the state published by the relay. Without a relay, read directly.
     private static MemoryMappedFile _relayMap;
     private static MemoryMappedViewAccessor _relay;
     private static float _nextRelayTry;
@@ -127,7 +127,7 @@ public static unsafe class XInputFeed
             _nextRelayTry = Time.unscaledTime + 2f;
             try
             {
-                // On garde aussi le fichier ouvert : sinon son nom disparait et un relais relance ne le retrouverait pas.
+                // Also keep the file open: otherwise its name disappears and a restarted relay would not find it.
                 _relayMap = MemoryMappedFile.OpenExisting("Local\\PaoPaoCoopXInput");
                 _relay = _relayMap.CreateViewAccessor();
                 Plugin.Instance.Log.LogInfo("Manette virtuelle : relais XInputRelay connecte");
@@ -153,33 +153,33 @@ public static unsafe class XInputFeed
         return _relay.ReadUInt32(o);
     }
 
-    // Boutons XInput -> bits de GamepadButton de Unity.
+    // XInput buttons -> Unity GamepadButton bits.
     private static readonly (ushort xinput, int bit)[] ButtonMap =
     {
-        (0x0001, 0),  // croix haut
-        (0x0002, 1),  // croix bas
-        (0x0004, 2),  // croix gauche
-        (0x0008, 3),  // croix droite
-        (0x8000, 4),  // Y  (nord)
-        (0x2000, 5),  // B  (est)
-        (0x1000, 6),  // A  (sud)
-        (0x4000, 7),  // X  (ouest)
-        (0x0040, 8),  // clic stick gauche
-        (0x0080, 9),  // clic stick droit
+        (0x0001, 0),  // d-pad up
+        (0x0002, 1),  // d-pad down
+        (0x0004, 2),  // d-pad left
+        (0x0008, 3),  // d-pad right
+        (0x8000, 4),  // Y  (north)
+        (0x2000, 5),  // B  (east)
+        (0x1000, 6),  // A  (south)
+        (0x4000, 7),  // X  (west)
+        (0x0040, 8),  // left stick click
+        (0x0080, 9),  // right stick click
         (0x0100, 10), // LB
         (0x0200, 11), // RB
         (0x0010, 12), // Start
         (0x0020, 13), // Back / Select
     };
 
-    // Transmet a Unity l'etat complet de la manette virtuelle.
+    // Sends Unity the full state of the virtual gamepad.
     private static void Send(XInputState st)
     {
         if (Pad == null) return;
         uint buttons = 0;
         foreach (var (x, bit) in ButtonMap)
             if ((st.Buttons & x) != 0) buttons |= 1u << bit;
-        const int StickUsed = 12000; // ~0.37 : au-dela du bruit des sticks
+        const int StickUsed = 12000; // ~0.37: above stick noise
         if (buttons != 0 || st.LeftTrigger > 60 || st.RightTrigger > 60 ||
             Math.Abs((int)st.ThumbLX) > StickUsed || Math.Abs((int)st.ThumbLY) > StickUsed ||
             Math.Abs((int)st.ThumbRX) > StickUsed || Math.Abs((int)st.ThumbRY) > StickUsed)
@@ -200,7 +200,7 @@ public static unsafe class XInputFeed
         *(float*)(b + 40) = Axis(st.ThumbRY);
         *(float*)(b + 44) = st.LeftTrigger / 255f;
         *(float*)(b + 48) = st.RightTrigger / 255f;
-        // Application immediate (et non mise en file d'attente : la file perdait une partie des etats).
+        // Applied immediately (not queued: the queue was losing some of the states).
         InputState.Change(Pad, InputEventPtr.From((InputEvent*)b), default);
         Fed++;
     }

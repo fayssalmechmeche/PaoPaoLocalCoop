@@ -7,16 +7,16 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
 
-// Lanceur du mod de coop locale : retrouve le jeu via Steam, installe le mod si besoin
-// (dossier "mod_files" a cote de ce programme), prepare BepInEx au premier lancement,
-// puis demarre le relais des manettes et les deux fenetres du jeu.
-// Les messages sont en francais si Windows est en francais, en anglais sinon.
+// Local co-op mod launcher: finds the game through Steam, installs the mod if needed
+// ("mod_files" folder next to this program), prepares BepInEx on first launch,
+// then starts the controller relay and the two game windows.
+// Messages are in French if Windows is in French, otherwise in English.
 internal static class Launcher
 {
-    private const string GameFolder = "PaoPao"; // dossier du jeu dans steamapps\common
+    private const string GameFolder = "PaoPao"; // game folder in steamapps\common
     private const string GameProcess = "PaoPao";
     private const string ManifestName = "LocalCoop_install.txt";
-    private const string OldManifestName = "CoopLocal_install.txt"; // nom avant la v0.3.0
+    private const string OldManifestName = "CoopLocal_install.txt"; // name before v0.3.0
     private const string Title = "PAO PAO Local Co-op";
 
     private static readonly string AppDir = Path.GetDirectoryName(Environment.ProcessPath) ?? ".";
@@ -27,7 +27,7 @@ internal static class Launcher
     private static bool French => (GetUserDefaultUILanguage() & 0x3FF) == 0x0C;
     private static string T(string fr, string en) => French ? fr : en;
 
-    // ---------------------------------------------------------------- lancement
+    // ---------------------------------------------------------------- launch
 
     public static void Run()
     {
@@ -44,7 +44,7 @@ internal static class Launcher
     {
         var options = Options.Load(AppDir);
 
-        // Un relais coupe brutalement peut avoir laisse la barre des taches cachee.
+        // A relay killed abruptly may have left the taskbar hidden.
         if (Taskbar.WasLeftHidden() && !RelayRunning()) Taskbar.ForceShow();
 
         var game = FindGame(options.GameDir);
@@ -82,8 +82,8 @@ internal static class Launcher
         Start(game, options);
     }
 
-    // Premier lancement du jeu seul : BepInEx genere ses fichiers (1 a 3 minutes). Deux fenetres en meme
-    // temps se gêneraient, donc on le fait avant de lancer le coop. Refait apres une mise a jour du jeu.
+    // First launch of the game alone: BepInEx generates its files (1 to 3 minutes). Two windows at the same
+    // time would interfere, so this is done before starting co-op. Redone after a game update.
     private static bool Prepare(Game game)
     {
         Info(T("Premiere preparation (1 a 3 minutes).\n\nUne fenetre du jeu va s'ouvrir toute seule puis se refermer. " +
@@ -101,7 +101,7 @@ internal static class Launcher
             if (!File.Exists(log) || File.GetLastWriteTime(log) < started) continue;
             if (ReadShared(log).Contains("Chainloader startup complete")) { done = true; break; }
         }
-        if (done) Thread.Sleep(6000); // laisse le jeu finir de demarrer avant de le fermer
+        if (done) Thread.Sleep(6000); // lets the game finish starting before closing it
         try { p.Kill(true); } catch { }
         foreach (var o in Process.GetProcessesByName(GameProcess)) { try { o.Kill(true); } catch { } }
         Thread.Sleep(2000);
@@ -119,7 +119,7 @@ internal static class Launcher
         string logs = Path.Combine(DataDir, "logs");
         Directory.CreateDirectory(logs);
 
-        // Relais des manettes (sans fenetre, s'arrete seul apres la fermeture du jeu).
+        // Controller relay (windowless, stops by itself after the game closes).
         var relay = new ProcessStartInfo(Environment.ProcessPath, "") { UseShellExecute = false, CreateNoWindow = true };
         relay.ArgumentList.Add("--relay");
         relay.ArgumentList.Add("--game");
@@ -127,8 +127,8 @@ internal static class Launcher
         if (options.HideTaskbar) relay.ArgumentList.Add("--hide-taskbar");
         Process.Start(relay);
 
-        // Par defaut chaque fenetre s'ouvre sur le menu (Coop locale > Heberger / Rejoindre).
-        // Demarrage automatique : la fenetre 1 heberge le dernier monde joue, la 2 la rejoint.
+        // By default each window opens on the menu (Local co-op > Host / Join).
+        // Automatic start: window 1 hosts the last played world, window 2 joins it.
         StartGame(game, options, options.AutoStart ? new[] { "--coop-host" } : new[] { "--coop-local", "--coop-fenetre", "1" },
                   Path.Combine(logs, "coop_joueur1.log"));
         Thread.Sleep(5000);
@@ -143,7 +143,7 @@ internal static class Launcher
         psi.ArgumentList.Add("-popupwindow");
         psi.ArgumentList.Add("-logFile");
         psi.ArgumentList.Add(logFile);
-        // Barre des taches visible : les fenetres s'arretent au-dessus d'elle.
+        // Visible taskbar: windows stop above it.
         if (!options.HideTaskbar) psi.ArgumentList.Add("--coop-workarea");
         Process.Start(psi);
     }
@@ -189,7 +189,7 @@ internal static class Launcher
             File.Copy(payloadPlugin, plugin, true);
         }
 
-        // Necessaire pour lancer le jeu hors de Steam (deux fenetres).
+        // Required to launch the game outside Steam (two windows).
         string appIdFile = Path.Combine(game.Dir, "steam_appid.txt");
         bool existed = File.Exists(appIdFile);
         if (!existed || File.ReadAllText(appIdFile).Trim() != game.AppId)
@@ -241,7 +241,7 @@ internal static class Launcher
         catch (Exception e) { Log(e.ToString()); Error(e.Message); }
     }
 
-    // Fichier d'etat de l'installation dans le dossier du jeu (renomme s'il porte encore l'ancien nom).
+    // Installation state file in the game folder (renamed if it still has the old name).
     private static string ManifestPath(Game game)
     {
         string path = Path.Combine(game.Dir, ManifestName), old = Path.Combine(game.Dir, OldManifestName);
@@ -254,7 +254,7 @@ internal static class Launcher
         Directory.CreateDirectory(to);
         foreach (var f in Directory.GetFiles(from))
         {
-            if (top && Path.GetFileName(f) == "version.txt") continue; // sert au lanceur, pas au jeu
+            if (top && Path.GetFileName(f) == "version.txt") continue; // used by the launcher, not the game
             File.Copy(f, Path.Combine(to, Path.GetFileName(f)), true);
         }
         foreach (var d in Directory.GetDirectories(from)) CopyDir(d, Path.Combine(to, Path.GetFileName(d)), false);
@@ -325,7 +325,7 @@ internal static class Launcher
         if (Process.GetProcessesByName("steam").Length > 0) return;
         Process.Start(new ProcessStartInfo("steam://open/main") { UseShellExecute = true });
         for (int i = 0; i < 60 && Process.GetProcessesByName("steam").Length == 0; i++) Thread.Sleep(1000);
-        Thread.Sleep(15000); // laisse Steam finir de se connecter
+        Thread.Sleep(15000); // lets Steam finish connecting
     }
 
     private static bool RelayRunning()
@@ -334,7 +334,7 @@ internal static class Launcher
         static bool Close(Mutex x) { x.Dispose(); return true; }
     }
 
-    // ---------------------------------------------------------------- petits outils
+    // ---------------------------------------------------------------- helpers
 
     private static string ReadShared(string path)
     {
@@ -357,7 +357,7 @@ internal static class Launcher
         catch { }
     }
 
-    // --yes (ou --oui) : repond "Oui" a toutes les questions et n'affiche aucune boite (installation silencieuse, tests).
+    // --yes (or --oui): answers "Yes" to all questions and shows no dialog (silent install, tests).
     private static readonly bool Auto = Array.Exists(Environment.GetCommandLineArgs(), a => a == "--yes" || a == "--oui");
 
     private static void Info(string msg) { if (Auto) Log("INFO " + msg); else MessageBoxW(IntPtr.Zero, msg, Title, 0x40); }
@@ -367,7 +367,7 @@ internal static class Launcher
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int MessageBoxW(IntPtr hwnd, string text, string caption, uint type);
     [DllImport("kernel32.dll")] private static extern ushort GetUserDefaultUILanguage();
 
-    // Etat de l'installation, ecrit dans le dossier du jeu pour pouvoir tout desinstaller proprement.
+    // Installation state, written to the game folder so that everything can be uninstalled cleanly.
     private sealed class Manifest
     {
         public string Version = "", GameSig = "";
@@ -383,7 +383,7 @@ internal static class Launcher
                 if (i < 0) continue;
                 string k = line.Substring(0, i).Trim(), v = line.Substring(i + 1).Trim();
                 bool yes = v == "yes" || v == "oui";
-                // Les cles francaises sont celles des versions precedentes.
+                // The French keys are those of previous versions.
                 if (k == "version") m.Version = v;
                 else if (k == "game" || k == "jeu") m.GameSig = v;
                 else if (k == "full" || k == "complet") m.Full = yes;
@@ -399,7 +399,7 @@ internal static class Launcher
         });
     }
 
-    // Reglages de options.ini (a cote du programme).
+    // Settings from options.ini (next to the program).
     private sealed class Options
     {
         public bool HideTaskbar, AutoStart;
@@ -416,7 +416,7 @@ internal static class Launcher
                 if (line.StartsWith("#") || line.IndexOf('=') < 0) continue;
                 string k = line.Substring(0, line.IndexOf('=')).Trim(), v = line.Substring(line.IndexOf('=') + 1).Trim();
                 bool yes = v == "oui" || v == "yes" || v == "true" || v == "1";
-                // Les cles francaises sont celles des versions precedentes.
+                // The French keys are those of previous versions.
                 if (k == "hide_taskbar" || k == "cacher_barre_des_taches") o.HideTaskbar = yes;
                 else if (k == "auto_start" || k == "demarrage_auto") o.AutoStart = yes;
                 else if (k == "game_folder" || k == "dossier_du_jeu") o.GameDir = v;

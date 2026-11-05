@@ -4,15 +4,15 @@ using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-// Relais des manettes pour le mod CoopLocal.
-// Le jeu bloque la lecture XInput dans sa propre fenetre quand elle n'est pas au premier plan.
-// Ce petit programme (sans fenetre) lit les 4 emplacements XInput en continu et publie leur etat
-// dans une memoire partagee ("Local\PaoPaoCoopXInput") que les deux fenetres du jeu lisent.
-// Il s'arrete tout seul quand plus aucune fenetre du jeu n'est ouverte.
+// Controller relay for the CoopLocal mod.
+// The game blocks XInput reads in its own window when it is not in the foreground.
+// This small windowless program continuously reads the 4 XInput slots and publishes their state
+// to shared memory ("Local\PaoPaoCoopXInput") read by both game windows.
+// It stops by itself when no game window is open anymore.
 internal static class Program
 {
     public const string MapName = "Local\\PaoPaoCoopXInput";
-    public const int SlotSize = 20; // code(4) paquet(4) boutons(2) LT(1) RT(1) LX LY RX RY (4x2)
+    public const int SlotSize = 20; // code(4) packet(4) buttons(2) LT(1) RT(1) LX LY RX RY (4x2)
 
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputState
@@ -26,9 +26,9 @@ internal static class Program
     [DllImport("xinput1_4.dll")] private static extern uint XInputGetState(uint userIndex, out XInputState state);
     [DllImport("winmm.dll")] private static extern uint timeBeginPeriod(uint ms);
 
-    // Sans option : lanceur (installe si besoin, puis demarre le jeu en double).
-    // --relay : relais des manettes (lance par le lanceur, sans fenetre).
-    // Les options francaises (--relais, --desinstaller...) sont celles des versions precedentes.
+    // No option: launcher (installs if needed, then starts the game twice).
+    // --relay: controller relay (started by the launcher, windowless).
+    // The French options (--relais, --desinstaller...) are those of previous versions.
     private static void Main(string[] args)
     {
         if (args.Length == 0) { Launcher.Run(); return; }
@@ -38,8 +38,8 @@ internal static class Program
         if (!relay && args[0] != "--hold" && args[0] != "--simulate") { Launcher.Run(); return; }
         if (args.Length > 1 && args[0] == "--hold")
         {
-            // Etapes "masque:lx:ly:rx:ry:ms[:emplacement]" jouees a la suite, puis tout est relache.
-            // Sans emplacement, toutes les manettes appuient ; sinon seulement celle-la (0 a 3).
+            // Steps "mask:lx:ly:rx:ry:ms[:slot]" played in sequence, then everything is released.
+            // Without a slot, all controllers press; otherwise only that one (0 to 3).
             for (int s = 1; s < args.Length; s++)
             {
                 var p = args[s].Split(':');
@@ -51,8 +51,8 @@ internal static class Program
         }
         if (args.Length > 0 && args[0] == "--simulate") { Simulate(args.Length > 1 ? short.Parse(args[1]) : short.MaxValue); return; }
         using var single = new Mutex(true, "Local\\PaoPaoCoopXInputRelay", out bool first);
-        if (!first) return; // deja lance
-        timeBeginPeriod(1); // Sleep(2) dure vraiment ~2 ms (sinon ~15 ms)
+        if (!first) return; // already running
+        timeBeginPeriod(1); // Sleep(2) really lasts ~2 ms (otherwise ~15 ms)
 
         using var map = MemoryMappedFile.CreateOrOpen(MapName, 4 * SlotSize);
         using var view = map.CreateViewAccessor();
@@ -101,15 +101,15 @@ internal static class Program
             {
                 lastCheck.Restart();
                 if (GameRunning()) { sawGame = true; lastSeenGame.Restart(); Taskbar.Keep(); }
-                // Arret : 10 s apres la fermeture du jeu, ou 2 min si le jeu n'a jamais demarre.
+                // Stop: 10 s after the game closes, or 2 min if the game never started.
                 if (sawGame ? lastSeenGame.ElapsedMilliseconds > 10000 : started.ElapsedMilliseconds > 120000) return;
             }
             Thread.Sleep(2);
         }
     }
 
-    // Test sans manette : maintient des boutons (masque XInput en hexa) et les sticks pendant ms,
-    // sur tous les emplacements (slot = -1) ou sur un seul (les autres restent branches, au repos).
+    // Test without a controller: holds buttons (hex XInput mask) and sticks for ms,
+    // on all slots (slot = -1) or on one (the others stay connected, idle).
     private static void Hold(ushort buttons, short lx, short ly, short rx, short ry, int ms, int slot = -1)
     {
         using var map = MemoryMappedFile.CreateOrOpen(MapName, 4 * SlotSize);
@@ -137,7 +137,7 @@ internal static class Program
         }
     }
 
-    // Test sans manette : stick gauche pousse (lx) 4 s sur l'emplacement 0, puis 4 s sur le 1, puis repos.
+    // Test without a controller: left stick pushed (lx) 4 s on slot 0, then 4 s on slot 1, then idle.
     private static void Simulate(short lx)
     {
         using var map = MemoryMappedFile.CreateOrOpen(MapName, 4 * SlotSize);
@@ -153,7 +153,7 @@ internal static class Program
                 long o = i * SlotSize;
                 view.Write(o + 0, 0u);
                 view.Write(o + 4, packet);
-                // Puis A appuye 3 fois (200 ms) sur les deux emplacements.
+                // Then A pressed 3 times (200 ms) on both slots.
                 bool pressA = ms >= 8000 && (ms - 8000) % 1000 < 200;
                 view.Write(o + 8, pressA ? (ushort)0x1000 : (ushort)0);
                 view.Write(o + 12, push ? lx : (short)0);

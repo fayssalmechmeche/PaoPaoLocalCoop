@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-// Barre des taches cachee pendant la partie, pour qu'elle ne passe plus devant le bas des fenetres
-// du jeu (dialogues). Aucun reglage de Windows n'est modifie : la barre est simplement masquee, puis
-// reaffichee a la fermeture du jeu. Si le relais a ete coupe brutalement, la barre reste cachee
-// jusqu'au prochain lancement du coop (ou redemarrage du PC) : un fichier-temoin le signale.
+// Taskbar hidden during the game, so that it no longer covers the bottom of the game windows
+// (dialogs). No Windows setting is changed: the taskbar is simply hidden, then
+// shown again when the game closes. If the relay was killed abruptly, the taskbar stays hidden
+// until the next co-op launch (or PC restart): a marker file records this.
 internal static class Taskbar
 {
-    // Dossier du .exe lui-meme (et non du dossier d'extraction temporaire d'un exe autonome).
+    // Folder of the .exe itself (not the temporary extraction folder of a self-contained exe).
     private static readonly string Marker = Path.Combine(Path.GetDirectoryName(Environment.ProcessPath) ?? ".", "taskbar_hidden.txt");
     private static readonly string[] Classes = { "Shell_TrayWnd", "Shell_SecondaryTrayWnd" };
     private static bool _hidden;
@@ -24,7 +24,7 @@ internal static class Taskbar
         catch { }
     }
 
-    // Windows peut la reafficher (touche Windows, menu Demarrer) : on la recache regulierement.
+    // Windows may show it again (Windows key, Start menu): hide it again regularly.
     public static void Keep()
     {
         if (_hidden) ShowAll(SW_HIDE);
@@ -42,7 +42,7 @@ internal static class Taskbar
         catch { }
     }
 
-    // Pour remettre la barre si un relais a ete coupe brutalement : le fichier-temoin dit qu'elle est restee cachee.
+    // To restore the taskbar if a relay was killed abruptly: the marker file says it stayed hidden.
     public static bool WasLeftHidden() => File.Exists(Marker);
 
     public static void ForceShow()

@@ -12,24 +12,24 @@ using UnityEngine.Localization.Settings;
 
 namespace CoopLocal;
 
-// Ligne "Coop locale" dans le menu principal, sous "Coop".
-// Elle ouvre l'onglet Coop du jeu, dont les deux boutons deviennent :
-//  - "Heberger"  : ecran de choix du monde du mode solo (monde existant ou nouveau), puis partie locale ;
-//  - "Rejoindre" : attend qu'une partie locale soit ouverte dans l'autre fenetre, puis la rejoint.
-// Le bouton "Coop" normal remet l'onglet Coop d'origine (en ligne).
+// "Local co-op" entry in the main menu, below "Co-op".
+// It opens the game's Co-op tab, whose two buttons become:
+//  - "Host": the solo mode world selection screen (existing or new world), then a local game;
+//  - "Join": waits until a local game is open in the other window, then joins it.
+// The regular "Co-op" button restores the original (online) Co-op tab.
 public static class LocalMenu
 {
     private static UIMenuView _menu;
     private static PawButton _localButton;
-    private static bool _localTab;      // l'onglet Coop est affiche en mode "coop locale"
-    private static bool _hostPending;   // le prochain monde choisi ouvre une partie locale
+    private static bool _localTab;      // the Co-op tab is shown in "local co-op" mode
+    private static bool _hostPending;   // the next selected world opens a local game
     private static float _findTimer;
     private static GameModal _joinModal;
     private static Session.JoinState _lastJoin = Session.JoinState.Idle;
 
     private static BepInEx.Logging.ManualLogSource Log => Plugin.Instance.Log;
 
-    // ---------------------------------------------------------------- textes
+    // ---------------------------------------------------------------- texts
 
     private static bool French
     {
@@ -99,7 +99,7 @@ public static class LocalMenu
         go.name = "CoopLocaleButton";
         go.transform.SetSiblingIndex(coop.transform.GetSiblingIndex() + 1);
         _localButton = go.GetComponent<PawButton>();
-        // La copie garde les actions enregistrees dans l'editeur du jeu : on les coupe et on met la notre.
+        // The copy keeps the actions registered in the game's editor: we disable them and add ours.
         var clicked = _localButton.Clicked;
         for (int i = 0; i < clicked.GetPersistentEventCount(); i++) clicked.SetPersistentListenerState(i, UnityEventCallState.Off);
         clicked.RemoveAllListeners();
@@ -111,7 +111,7 @@ public static class LocalMenu
         Log.LogInfo($"Menu : bouton \"Coop locale\" ajoute (persistants={clicked.GetPersistentEventCount()}) : {parts}");
     }
 
-    // ---------------------------------------------------------------- libelles
+    // ---------------------------------------------------------------- labels
 
     private static void SetLabel(GameObject go, string text)
     {
@@ -166,7 +166,7 @@ public static class LocalMenu
                           "A local game is already open in the other window: choose Join."));
             return;
         }
-        // Meme ecran que Solo > Charger : choix d'un monde existant ou creation d'un nouveau.
+        // Same screen as Solo > Load: pick an existing world or create a new one.
         _hostPending = true;
         _menu.LoadGame();
     }
@@ -210,9 +210,9 @@ public static class LocalMenu
         m.Build();
     }
 
-    // ---------------------------------------------------------------- patchs du menu du jeu
+    // ---------------------------------------------------------------- game menu patches
 
-    // Monde choisi (ou cree) apres "Heberger" : partie locale au lieu de la partie solo.
+    // World selected (or created) after "Host": local game instead of the solo game.
     private static bool PrepareGamePrefix(bool overNetwork, string worldId)
     {
         if (!_hostPending) return true;
@@ -236,7 +236,7 @@ public static class LocalMenu
         return false;
     }
 
-    // Solo ou Coop (en ligne) : on quitte le mode coop locale.
+    // Solo or Co-op (online): leave local co-op mode.
     private static void LeaveLocalPrefix()
     {
         _hostPending = false;

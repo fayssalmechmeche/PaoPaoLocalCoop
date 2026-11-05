@@ -6,11 +6,11 @@ using UnityEngine.InputSystem.Users;
 
 namespace CoopLocal;
 
-// Relie la manette virtuelle au joueur de cette fenetre (PlayerInput) et active le mode "Gamepad".
-// Le jeu ne bascule pas tout seul sur la manette virtuelle (elle est remplie directement, sans
-// passer par la file d'evenements qu'il surveille) : sans ca, les menus et dialogues l'ignorent
-// et les aides a l'ecran affichent les touches du clavier.
-// Fenetre 1 : on rebascule sur la manette des qu'elle sert ; le jeu repasse seul au clavier/souris quand on s'en sert.
+// Binds the virtual gamepad to this window's player (PlayerInput) and enables "Gamepad" mode.
+// The game does not switch to the virtual gamepad on its own (it is filled directly, without
+// going through the event queue it watches): without this, menus and dialogs ignore it
+// and on-screen hints show keyboard keys.
+// Window 1: switch back to the gamepad as soon as it is used; the game returns to keyboard/mouse by itself when those are used.
 public static class SchemeSync
 {
     private static InputService _svc;

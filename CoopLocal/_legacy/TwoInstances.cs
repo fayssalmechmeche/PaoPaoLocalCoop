@@ -6,8 +6,8 @@ using Unity.Netcode;
 
 namespace CoopLocal;
 
-// Essai "deux fenetres" : F7 = cette fenetre devient l'hote, F8 = cette fenetre rejoint l'hote.
-// Utilise l'outil de test multijoueur des developpeurs (FastStart, connexion directe).
+// "Two windows" experiment: F7 = this window becomes the host, F8 = this window joins the host.
+// Uses the developers' multiplayer test tool (FastStart, direct connection).
 public static class TwoInstances
 {
     public static void Host()
@@ -46,7 +46,7 @@ public static class TwoInstances
     }
 }
 
-// Declenchement automatique via les options de lancement (pour les tests) : --coop-host / --coop-join
+// Automatic trigger through launch options (for tests): --coop-host / --coop-join
 public static class AutoStart
 {
     private static float _t;

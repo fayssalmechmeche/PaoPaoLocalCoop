@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Ecran partage : fenetre sans bordure, fenetre 1 sur la moitie gauche, fenetre 2 sur la moitie droite.
-// Le son de la fenetre 2 est coupe pour ne pas entendre tout en double.
+// Split screen: borderless window, window 1 on the left half, window 2 on the right half.
+// Window 2 is muted so that everything is not heard twice.
 public static class WindowLayout
 {
     private const float FirstApply = 3f;
@@ -32,7 +32,7 @@ public static class WindowLayout
 
     private static void Apply()
     {
-        // Option du lanceur : barre des taches visible -> les fenetres s'arretent au-dessus d'elle.
+        // Launcher option: visible taskbar -> windows stop above it.
         int originX = 0, originY = 0;
         int screenW = GetSystemMetrics(SM_CXSCREEN);
         int screenH = GetSystemMetrics(SM_CYSCREEN);
@@ -45,19 +45,19 @@ public static class WindowLayout
         int x = originX + (Role.IsFirstWindow ? 0 : w);
         int y = originY;
 
-        // Le jeu peut remettre sa propre resolution (reglages sauvegardes) : on la reimpose si besoin.
+        // The game may restore its own resolution (saved settings): re-apply ours if needed.
         if (Screen.fullScreenMode != FullScreenMode.Windowed || Screen.width != w || Screen.height != h)
         {
             Screen.SetResolution(w, h, FullScreenMode.Windowed);
             _resolutionSet = true;
-            return; // on place la fenetre au prochain passage, une fois la resolution appliquee
+            return; // the window is placed on the next pass, once the resolution is applied
         }
         _resolutionSet = true;
 
         if (_hwnd == IntPtr.Zero) _hwnd = FindOwnWindow();
         if (_hwnd == IntPtr.Zero) return;
 
-        // La fenetre est deja sans bordure grace a l'option de lancement -popupwindow : on la place seulement.
+        // The window is already borderless thanks to the -popupwindow launch option: only position it.
         GetWindowRect(_hwnd, out var r);
         if (r.Left == x && r.Top == y && r.Right - r.Left == w && r.Bottom - r.Top == h) return;
         SetWindowPos(_hwnd, IntPtr.Zero, x, y, w, h, SWP_SHOWWINDOW | SWP_NOZORDER);
@@ -65,14 +65,14 @@ public static class WindowLayout
             Plugin.Instance.Log.LogInfo($"Fenetre placee : x={x} y={y} largeur={w} hauteur={h} (avant : {r.Left},{r.Top} {r.Right - r.Left}x{r.Bottom - r.Top})");
     }
 
-    // Vrai si la fenetre de ce jeu est celle au premier plan dans Windows.
+    // True if this game's window is the foreground window in Windows.
     public static bool IsForeground()
     {
         if (_hwnd == IntPtr.Zero) _hwnd = FindOwnWindow();
         return _hwnd != IntPtr.Zero && GetForegroundWindow() == _hwnd;
     }
 
-    // Trouve la fenetre Unity de ce processus.
+    // Finds this process's Unity window.
     private static IntPtr FindOwnWindow()
     {
         uint pid = (uint)Process.GetCurrentProcess().Id;

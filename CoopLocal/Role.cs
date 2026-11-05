@@ -4,22 +4,22 @@ namespace CoopLocal;
 
 public enum CoopRole { None, Host, Client }
 
-// Lit les options de lancement ajoutees par le lanceur :
-//   --coop-local --coop-fenetre 1|2 : fenetre de coop locale ; chaque joueur choisit dans le menu
-//                                     (Coop locale > Heberger / Rejoindre).
-//   --coop-host / --coop-join       : demarrage automatique : la fenetre 1 heberge le dernier monde joue,
-//                                     la fenetre 2 la rejoint.
-// Sans ces options (lancement normal depuis Steam), le mod ne fait rien.
+// Reads the launch options added by the launcher:
+//   --coop-local --coop-fenetre 1|2 : local co-op window; each player chooses in the menu
+//                                     (Local co-op > Host / Join).
+//   --coop-host / --coop-join       : automatic start: window 1 hosts the last played world,
+//                                     window 2 joins it.
+// Without these options (normal launch from Steam), the mod does nothing.
 public static class Role
 {
     public static bool Active { get; private set; }
     public static bool AutoStart { get; private set; }
 
-    // 1 = fenetre de gauche (1re manette, plus clavier/souris), 2 = fenetre de droite (2e manette).
+    // 1 = left window (1st controller, plus keyboard/mouse), 2 = right window (2nd controller).
     public static int Window { get; private set; }
     public static bool IsFirstWindow => Window == 1;
 
-    // Role reseau : impose en demarrage automatique, sinon choisi dans le menu.
+    // Network role: forced on automatic start, otherwise chosen in the menu.
     public static CoopRole Current { get; set; } = CoopRole.None;
 
     public static void Detect()

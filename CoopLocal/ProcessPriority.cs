@@ -3,8 +3,8 @@ using System.Diagnostics;
 
 namespace CoopLocal;
 
-// Windows favorise le programme dont la fenetre est au premier plan : l'autre joueur avait des saccades.
-// Pour compenser, la fenetre qui n'est pas au premier plan passe en priorite "superieure a la normale".
+// Windows favors the program whose window is in the foreground: the other player was stuttering.
+// To compensate, the window that is not in the foreground gets "above normal" priority.
 public static class ProcessPriority
 {
     private const float Period = 0.5f;

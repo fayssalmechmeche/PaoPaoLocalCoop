@@ -6,8 +6,8 @@ using Unity.Netcode;
 
 namespace CoopLocal;
 
-// Etape A (diagnostic) : F10 = ajoute le membre fictif "Joueur 2" (le jeu cree alors son joueur).
-// Puis 3 rapports d'etat a +2s, +6s, +12s.
+// Step A (diagnostics): F10 = adds the fake member "Joueur 2" (the game then creates its player).
+// Then 3 state reports at +2s, +6s, +12s.
 public static class Coop
 {
     private static bool _added;
@@ -53,7 +53,7 @@ public static class Coop
 
 public static class CoopWarp
 {
-    // Place le personnage du Joueur 2 a cote de celui du joueur local.
+    // Places Player 2's character next to the local player's.
     public static void AttachPuppet()
     {
         var log = Plugin.Instance.Log;

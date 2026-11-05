@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace CoopLocal;
 
-// Auto-test (option de lancement --coop-selftest, fenetre hote seulement) :
-// simule le stick gauche pousse a droite pendant 2 s et mesure si le personnage local a bouge.
-//   essai 1 : tel quel ;  essai 2 : en faisant croire a Unity que la fenetre a le focus.
+// Self-test (--coop-selftest launch option, host window only):
+// simulates the left stick pushed right for 2 s and measures whether the local character moved.
+//   attempt 1: as is;  attempt 2: making Unity believe the window has focus.
 public static class SelfTest
 {
     private static readonly bool Enabled = Array.IndexOf(Environment.GetCommandLineArgs(), "--coop-selftest") >= 0;
@@ -31,8 +31,8 @@ public static class SelfTest
             var pos = me.Character.transform.position;
             switch (_phase)
             {
-                case 0: // essai 1
-                case 3: // essai 2
+                case 0: // attempt 1
+                case 3: // attempt 2
                     XInputFeed.Override = true;
                     _start = pos;
                     Log.LogInfo($"AUTOTEST essai {(_phase == 0 ? 1 : 2)} : debut, premierPlan={WindowLayout.IsForeground()} focus={Application.isFocused} pos={pos}");
@@ -49,7 +49,7 @@ public static class SelfTest
                         Next();
                     }
                     break;
-                case 2: // pause, puis on force le focus pour l'essai 2
+                case 2: // pause, then force focus for attempt 2
                     if (_phaseT < 2f) return;
                     _harmony ??= new Harmony("local.paopao.cooplocal.selftest");
                     _harmony.Patch(AccessTools.PropertyGetter(typeof(Application), nameof(Application.isFocused)),
@@ -70,7 +70,7 @@ public static class SelfTest
     private static void Next() { _phase++; _phaseT = 0f; _measured = false; }
     private static bool _measured;
 
-    // Ou se perd l'information ? manette (Unity) -> action "Move" du jeu -> personnage.
+    // Where is the information lost? controller (Unity) -> game's "Move" action -> character.
     private static void Measure()
     {
         var pad = XInputFeed.Target;

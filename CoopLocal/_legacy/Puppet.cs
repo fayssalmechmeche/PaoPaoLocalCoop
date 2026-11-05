@@ -5,7 +5,7 @@ using PawPaw.Game.Units.Controllers.Player;
 
 namespace CoopLocal;
 
-// Pilote le personnage "marionnette" du Joueur 2 : on deplace son Transform nous-memes.
+// Drives Player 2's "puppet" character: we move its Transform ourselves.
 public static class Puppet
 {
     private static Transform _t;
@@ -17,7 +17,7 @@ public static class Puppet
     public static bool Active => _t != null;
     private static PawPaw.Game.Units.Common.Character _hostChar;
 
-    // Appele une fois, quand le personnage du joueur 2 existe : on le place pres du joueur 1.
+    // Called once, when player 2's character exists: place it near player 1.
     public static void Attach(Transform p2Char, Transform hostChar)
     {
         _t = p2Char;
@@ -25,7 +25,7 @@ public static class Puppet
         _pos = hostChar.position + hostChar.right * 1.5f;
         _rot = hostChar.rotation;
         ReadHostCollisionSetup(hostChar);
-        // On coupe ce qui pourrait ecraser notre position.
+        // Disable whatever could overwrite our position.
         try { int n = 0; foreach (var nt in p2Char.GetComponentsInChildren<Unity.Netcode.Components.NetworkTransform>(true)) { nt.enabled = false; n++; } Plugin.Instance.Log.LogInfo($"PUPPET: {n} NetworkTransform desactive(s)"); } catch (Exception e) { Plugin.Instance.Log.LogWarning("PUPPET NT: " + e.Message); }
         _avatar = p2Char.Find("Avatar");
         try { var rb = p2Char.GetComponent<Rigidbody>(); if (rb != null) rb.isKinematic = true; } catch { }
@@ -58,7 +58,7 @@ public static class Puppet
     private static float _height = 1.2f;
     private static int _mask = ~0;
 
-    // Lit la taille de la capsule et les couches de collision du joueur 1, pour imiter son comportement.
+    // Reads player 1's capsule size and collision layers, to imitate its behavior.
     private static void ReadHostCollisionSetup(Transform hostChar)
     {
         var log = Plugin.Instance.Log;
@@ -73,7 +73,7 @@ public static class Puppet
         log.LogInfo($"PUPPET: capsule rayon={_radius} hauteur={_height} masque=0x{_mask:X}");
     }
 
-    // Avance de 'delta' en glissant le long des obstacles (2 essais : direct, puis glissement).
+    // Moves by 'delta', sliding along obstacles (2 attempts: direct, then slide).
     private static Vector3 MoveWithCollisions(Vector3 pos, Vector3 delta)
     {
         for (int i = 0; i < 2 && delta.sqrMagnitude > 1e-8f; i++)
@@ -85,7 +85,7 @@ public static class Puppet
             RaycastHit hit;
             if (!Physics.CapsuleCast(bottom, top, _radius, dir, out hit, dist + Skin, _mask, QueryTriggerInteraction.Ignore))
                 return pos + delta;
-            // On avance jusqu'au contact, puis on garde seulement la partie parallele au mur.
+            // Move until contact, then keep only the part parallel to the wall.
             float allowed = Mathf.Max(0f, hit.distance - Skin);
             pos += dir * allowed;
             var rest = delta - dir * allowed;
@@ -97,7 +97,7 @@ public static class Puppet
         return pos;
     }
 
-    // Appele a chaque image (LateUpdate).
+    // Called every frame (LateUpdate).
     public static void Apply(float dt)
     {
         if (_t == null) return;
@@ -113,7 +113,7 @@ public static class Puppet
                 _pos = MoveWithCollisions(_pos, dir * Speed * dt);
                 _rot = Quaternion.Slerp(_rot, Quaternion.LookRotation(dir), 12f * dt);
             }
-            // Hauteur : rayon vers le bas depuis la hauteur d'une marche (pas depuis au-dessus des toits).
+            // Height: downward ray from step height (not from above the roofs).
             RaycastHit hit;
             if (Physics.Raycast(_pos + Vector3.up * StepHeight, Vector3.down, out hit, 5f, _mask, QueryTriggerInteraction.Ignore))
                 _pos.y = Mathf.Lerp(_pos.y, hit.point.y, 20f * dt);

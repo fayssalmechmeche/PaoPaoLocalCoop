@@ -10,7 +10,7 @@ namespace CoopLocal;
 //   window 1 on the left, window 2 on the right; each player picks "Local co-op" in the menu,
 //   or (automatic start) window 1 hosts and window 2 joins on its own.
 // Without these options (normal launch from Steam), the mod does nothing.
-[BepInPlugin("local.paopao.cooplocal", "CoopLocal", "0.3.0")]
+[BepInPlugin("local.paopao.cooplocal", "CoopLocal", "0.3.1")]
 public class Plugin : BasePlugin
 {
     public static Plugin Instance;
@@ -20,8 +20,8 @@ public class Plugin : BasePlugin
         Instance = this;
         Role.Detect();
         Log.LogInfo(Role.Active
-            ? $"CoopLocal 0.3.0 loaded. Window {Role.Window}, {(Role.AutoStart ? "automatic start (" + Role.Current + ")" : "menu selection")}"
-            : "CoopLocal 0.3.0 loaded. Normal launch: the mod does nothing.");
+            ? $"CoopLocal 0.3.1 loaded. Window {Role.Window}, {(Role.AutoStart ? "automatic start (" + Role.Current + ")" : "menu selection")}"
+            : "CoopLocal 0.3.1 loaded. Normal launch: the mod does nothing.");
         if (!Role.Active) return;
 
         FocusPatch.Apply();

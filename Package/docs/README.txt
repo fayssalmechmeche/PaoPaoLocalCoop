@@ -1,5 +1,5 @@
 =====================================================================
-LOCAL CO-OP FOR PAO PAO  (unofficial mod)  -  version 0.3.0
+LOCAL CO-OP FOR PAO PAO  (unofficial mod)  -  version 0.3.1
 =====================================================================
 
 Play with two players on the SAME PC using two gamepads: the screen is split in two

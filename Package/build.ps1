@@ -20,6 +20,7 @@ foreach ($f in 'winhttp.dll', 'doorstop_config.ini', '.doorstop_version') { Copy
 Copy-Item "$Base\dotnet" "$content\dotnet" -Recurse
 Copy-Item "$Base\BepInEx\core" "$content\BepInEx\core" -Recurse
 Copy-Item "$Base\BepInEx\unity-libs" "$content\BepInEx\unity-libs" -Recurse
+Remove-Item "$content\BepInEx\unity-libs\*.zip" -ErrorAction SilentlyContinue  # no nested archive: the DLLs are shipped extracted
 New-Item -ItemType Directory -Force "$content\BepInEx\config" | Out-Null
 Copy-Item "$here\config\BepInEx.cfg" "$content\BepInEx\config"  # BepInEx console disabled (otherwise a black window hides the game)
 Copy-Item "$modRoot\CoopLocal\bin\Release\net6.0\CoopLocal.dll" "$content\BepInEx\plugins"

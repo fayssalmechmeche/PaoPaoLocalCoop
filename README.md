@@ -30,6 +30,7 @@ Requirements: Windows 10/11 x64, .NET 8 SDK (plus the .NET 6 targeting pack), PA
 - Game folder: adds BepInEx, the plugin DLL, `steam_appid.txt` (needed to start the game outside Steam) and an install state file. No game file is modified. `PaoPaoLocalCoop.exe --uninstall` removes them.
 - Windows: reads the Steam install path from the registry and hides the taskbar while playing (it is restored when the game closes). The window that is not in the foreground gets a higher process priority.
 - Network: the mod contains no network code of its own. The two windows connect to each other through the game's own multiplayer stack on the same PC.
+- BepInEx downloads: `UnityBaseLibrariesSource` is left empty in `Package/config/BepInEx.cfg` and the Unity base libraries are shipped extracted, so BepInEx downloads nothing and the package contains no nested archive.
 
 ## Third-party
 

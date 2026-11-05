@@ -18,9 +18,9 @@ public static class PuppetVisuals
         {
             var av = root.Find("Avatar");
             if (av != null) { av.gameObject.SetActive(true); foreach (var r in av.GetComponentsInChildren<SkinnedMeshRenderer>(false)) r.enabled = true; }
-            log.LogInfo("VISUEL: avatar reactive");
+            log.LogInfo("VISUAL: avatar re-enabled");
         }
-        catch (Exception e) { log.LogError("VISUEL a echoue : " + e); }
+        catch (Exception e) { log.LogError("VISUAL failed: " + e); }
     }
 
     // Checks every second (for ~15 s) player 2's visibility state relative to player 1.
@@ -34,15 +34,15 @@ public static class PuppetVisuals
         try
         {
             string F(Character c) => $"Flags={c.Flags} VisualFlags={c.VisualFlags}";
-            log.LogInfo($"MONITEUR[{_ticks}] P2: {F(p2)} | P1: {F(host)}");
+            log.LogInfo($"MONITOR[{_ticks}] P2: {F(p2)} | P1: {F(host)}");
             var av = p2.transform.Find("Avatar");
             if (av != null)
             {
                 var smr = av.GetComponentInChildren<SkinnedMeshRenderer>(true);
                 if (smr != null)
-                    log.LogInfo($"MONITEUR[{_ticks}] avatar.active={av.gameObject.activeSelf} smr.enabled={smr.enabled} visible={smr.isVisible} boundsCenter={smr.bounds.center} p2pos={p2.transform.position}");
+                    log.LogInfo($"MONITOR[{_ticks}] avatar.active={av.gameObject.activeSelf} smr.enabled={smr.enabled} visible={smr.isVisible} boundsCenter={smr.bounds.center} p2pos={p2.transform.position}");
             }
         }
-        catch (Exception e) { log.LogError("MONITEUR : " + e.Message); }
+        catch (Exception e) { log.LogError("MONITOR : " + e.Message); }
     }
 }

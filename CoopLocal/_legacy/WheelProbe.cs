@@ -19,19 +19,19 @@ public static class WheelProbe
     {
         try
         {
-            var h = new HarmonyLib.Harmony("local.paopao.cooplocal.roue");
+            var h = new HarmonyLib.Harmony("local.paopao.cooplocal.wheel");
             void Spy(string method, string prefix) =>
                 h.Patch(HarmonyLib.AccessTools.Method(typeof(UIRadialWheel), method), prefix: new HarmonyLib.HarmonyMethod(typeof(WheelProbe), prefix));
             Spy(nameof(UIRadialWheel.RefuseOpen), nameof(OnRefuse));
             Spy(nameof(UIRadialWheel.OnRadialMenuStarted), nameof(OnStarted));
             Spy(nameof(UIRadialWheel.ToggleWheel), nameof(OnToggle));
         }
-        catch (Exception e) { Plugin.Instance.Log.LogError("ROUE espion : " + e.Message); }
+        catch (Exception e) { Plugin.Instance.Log.LogError("WHEEL spy: " + e.Message); }
     }
 
-    private static void OnRefuse(UIRadialWheel __instance, string reason) => Plugin.Instance.Log.LogInfo($"ROUE {__instance.gameObject.name} ouverture refusee : {reason}");
-    private static void OnStarted(UIRadialWheel __instance) => Plugin.Instance.Log.LogInfo($"ROUE {__instance.gameObject.name} demande d'ouverture");
-    private static void OnToggle(UIRadialWheel __instance, bool state, bool force) => Plugin.Instance.Log.LogInfo($"ROUE {__instance.gameObject.name} ToggleWheel({state}, force={force})");
+    private static void OnRefuse(UIRadialWheel __instance, string reason) => Plugin.Instance.Log.LogInfo($"WHEEL {__instance.gameObject.name} open refused: {reason}");
+    private static void OnStarted(UIRadialWheel __instance) => Plugin.Instance.Log.LogInfo($"WHEEL {__instance.gameObject.name} open requested");
+    private static void OnToggle(UIRadialWheel __instance, bool state, bool force) => Plugin.Instance.Log.LogInfo($"WHEEL {__instance.gameObject.name} ToggleWheel({state}, force={force})");
 
     public static void Tick(float dt)
     {
@@ -48,7 +48,7 @@ public static class WheelProbe
                 var b = _svc.Common.RadialMenu.bindings;
                 var s = "";
                 for (int i = 0; i < b.Count; i++) s += b[i].effectivePath + " ";
-                Plugin.Instance.Log.LogInfo("ROUE touches d'ouverture : " + s);
+                Plugin.Instance.Log.LogInfo("WHEEL open keys: " + s);
             }
             var wheels = UnityEngine.Object.FindObjectsOfType<UIRadialWheel>();
             for (int i = 0; i < wheels.Count; i++)
@@ -57,11 +57,11 @@ public static class WheelProbe
                 if (!w.WheelActive) continue;
                 var cur = Gamepad.current;
                 Plugin.Instance.Log.LogInfo(
-                    $"ROUE {w.gameObject.name} direction={w.GetRawInputDirection()} manetteActuelle={(cur != null ? cur.deviceId + "/" + cur.displayName + "/actif=" + cur.enabled : "aucune")} " +
-                    $"maManette={XInputFeed.Pad?.deviceId} stickD={XInputFeed.Pad?.rightStick.ReadValue()} stickG={XInputFeed.Pad?.leftStick.ReadValue()} " +
-                    $"Look={_svc.Gameplay.Look.ReadValue<Vector2>()} Nav={_svc.UI.Navigate.ReadValue<Vector2>()} carte={_svc.MapType} schema={_svc.ControlScheme} curseur={_svc.LastCursorMode}");
+                    $"WHEEL {w.gameObject.name} direction={w.GetRawInputDirection()} currentGamepad={(cur != null ? cur.deviceId + "/" + cur.displayName + "/active=" + cur.enabled : "aucune")} " +
+                    $"myGamepad={XInputFeed.Pad?.deviceId} stickR={XInputFeed.Pad?.rightStick.ReadValue()} stickL={XInputFeed.Pad?.leftStick.ReadValue()} " +
+                    $"Look={_svc.Gameplay.Look.ReadValue<Vector2>()} Nav={_svc.UI.Navigate.ReadValue<Vector2>()} map={_svc.MapType} scheme={_svc.ControlScheme} cursor={_svc.LastCursorMode}");
             }
         }
-        catch (Exception e) { Plugin.Instance.Log.LogError("ROUE : " + e.Message); _timer = -5f; }
+        catch (Exception e) { Plugin.Instance.Log.LogError("WHEEL: " + e.Message); _timer = -5f; }
     }
 }

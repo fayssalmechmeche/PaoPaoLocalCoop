@@ -38,9 +38,9 @@ public static class SchemeSync
 
             var user = InputUser.PerformPairingWithDevice(pad, pi.user, InputUserPairingOptions.UnpairCurrentDevicesFromUser);
             user.ActivateControlScheme("Gamepad");
-            Log($"Mode manette active pour ce joueur (avant : {(paired ? "associee" : "non associee")}, maintenant : {pi.currentControlScheme})");
+            Log($"Gamepad mode enabled for this player (before: {(paired ? "paired" : "not paired")}, now: {pi.currentControlScheme})");
         }
-        catch (Exception e) { Log("Mode manette : " + e.Message); }
+        catch (Exception e) { Log("Gamepad mode: " + e.Message); }
     }
 
     private static void Log(string msg)

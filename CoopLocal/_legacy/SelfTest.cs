@@ -35,7 +35,7 @@ public static class SelfTest
                 case 3: // attempt 2
                     XInputFeed.Override = true;
                     _start = pos;
-                    Log.LogInfo($"AUTOTEST essai {(_phase == 0 ? 1 : 2)} : debut, premierPlan={WindowLayout.IsForeground()} focus={Application.isFocused} pos={pos}");
+                    Log.LogInfo($"SELFTEST attempt {(_phase == 0 ? 1 : 2)}: start, foreground={WindowLayout.IsForeground()} focus={Application.isFocused} pos={pos}");
                     Next();
                     break;
                 case 1:
@@ -45,7 +45,7 @@ public static class SelfTest
                     if (_phaseT >= 2f)
                     {
                         XInputFeed.Send(0, 0, 0, 0, 0, 0, 0);
-                        Log.LogInfo($"AUTOTEST essai {(_phase == 1 ? 1 : 2)} : deplacement = {Vector3.Distance(_start, pos):F2} m (focus={Application.isFocused})");
+                        Log.LogInfo($"SELFTEST attempt {(_phase == 1 ? 1 : 2)}: moved = {Vector3.Distance(_start, pos):F2} m (focus={Application.isFocused})");
                         Next();
                     }
                     break;
@@ -54,17 +54,17 @@ public static class SelfTest
                     _harmony ??= new Harmony("local.paopao.cooplocal.selftest");
                     _harmony.Patch(AccessTools.PropertyGetter(typeof(Application), nameof(Application.isFocused)),
                         prefix: new HarmonyMethod(typeof(SelfTest), nameof(FocusPrefix)));
-                    Log.LogInfo($"AUTOTEST : focus force (Application.isFocused={Application.isFocused})");
+                    Log.LogInfo($"SELFTEST: focus forced (Application.isFocused={Application.isFocused})");
                     Next();
                     break;
                 case 5:
                     XInputFeed.Override = false;
-                    Log.LogInfo("AUTOTEST : termine");
+                    Log.LogInfo("SELFTEST: done");
                     Next();
                     break;
             }
         }
-        catch (Exception e) { Log.LogError("AUTOTEST : " + e); _phase = 6; XInputFeed.Override = false; }
+        catch (Exception e) { Log.LogError("SELFTEST: " + e); _phase = 6; XInputFeed.Override = false; }
     }
 
     private static void Next() { _phase++; _phaseT = 0f; _measured = false; }
@@ -74,19 +74,19 @@ public static class SelfTest
     private static void Measure()
     {
         var pad = XInputFeed.Target;
-        Log.LogInfo($"AUTOTEST   manette '{pad?.displayName}' id={pad?.deviceId} enabled={pad?.enabled} stick={pad?.leftStick.ReadValue()}");
+        Log.LogInfo($"SELFTEST   gamepad '{pad?.displayName}' id={pad?.deviceId} enabled={pad?.enabled} stick={pad?.leftStick.ReadValue()}");
         var svc = UnityEngine.Object.FindObjectOfType<PawPaw.Game.Services.Input.Core.InputService>();
-        if (svc == null) { Log.LogInfo("AUTOTEST   InputService introuvable"); return; }
+        if (svc == null) { Log.LogInfo("SELFTEST   InputService not found"); return; }
         var move = svc.Gameplay.Move;
         var ctl = move.activeControl;
-        Log.LogInfo($"AUTOTEST   carte={svc.MapType} schema={svc.ControlScheme} Gameplay.enabled={svc.Gameplay.enabled} Move.enabled={move.enabled} Move={move.ReadValue<Vector2>()} controle actif={(ctl != null ? ctl.path : "aucun")}");
+        Log.LogInfo($"SELFTEST   map={svc.MapType} scheme={svc.ControlScheme} Gameplay.enabled={svc.Gameplay.enabled} Move.enabled={move.enabled} Move={move.ReadValue<Vector2>()} active control={(ctl != null ? ctl.path : "aucun")}");
         var pi = svc._playerInput;
         if (pi != null)
         {
             var devs = "";
             var paired = pi.devices;
             for (int i = 0; i < paired.Count; i++) devs += $"{paired[i].displayName}#{paired[i].deviceId} ";
-            Log.LogInfo($"AUTOTEST   PlayerInput schema={pi.currentControlScheme} appareils associes={devs}");
+            Log.LogInfo($"SELFTEST   PlayerInput scheme={pi.currentControlScheme} paired devices={devs}");
         }
     }
 

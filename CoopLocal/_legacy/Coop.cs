@@ -6,7 +6,7 @@ using Unity.Netcode;
 
 namespace CoopLocal;
 
-// Step A (diagnostics): F10 = adds the fake member "Joueur 2" (the game then creates its player).
+// Step A (diagnostics): F10 = adds the fake member "Player 2" (the game then creates its player).
 // Then 3 state reports at +2s, +6s, +12s.
 public static class Coop
 {
@@ -19,12 +19,12 @@ public static class Coop
     {
         var log = Plugin.Instance.Log;
         var session = UnityEngine.Object.FindObjectOfType<NetworkSessionInstance>();
-        if (session == null) { log.LogWarning("F10: pas de NetworkSessionInstance (es-tu en partie ?)"); return; }
-        if (_added) { log.LogInfo("F10: membre deja ajoute, rapport immediat"); Report(); return; }
+        if (session == null) { log.LogWarning("F10: no NetworkSessionInstance (are you in a game?)"); return; }
+        if (_added) { log.LogInfo("F10: member already added, reporting now"); Report(); return; }
         _added = true;
-        var member = new SessionMemberData(1UL, "Joueur 2", (sbyte)1, default, "local-player-2");
+        var member = new SessionMemberData(1UL, "Player 2", (sbyte)1, default, "local-player-2");
         session.AddMember(member);
-        log.LogInfo($"F10: membre ajoute, PlayerCount={session.PlayerCount}");
+        log.LogInfo($"F10: member added, PlayerCount={session.PlayerCount}");
         _since = 0f; _reports = 0;
     }
 
@@ -42,12 +42,12 @@ public static class Coop
         {
             var nm = NetworkManager.Singleton;
             foreach (var np in UnityEngine.Object.FindObjectsOfType<NetworkPlayer>())
-                log.LogInfo($"RAPPORT NetworkPlayer '{np.name}': spawned={np.IsSpawned} owner={np.OwnerClientId} ready={np.IsReady} hasMember={np.HasMemberData} character={(np.Character != null ? "OUI" : "non")} camera={(np.CharacterCamera != null ? "OUI" : "non")}");
+                log.LogInfo($"REPORT NetworkPlayer '{np.name}': spawned={np.IsSpawned} owner={np.OwnerClientId} ready={np.IsReady} hasMember={np.HasMemberData} character={(np.Character != null ? "YES" : "no")} camera={(np.CharacterCamera != null ? "YES" : "no")}");
             foreach (var o in UnityEngine.Object.FindObjectsOfType<NetworkObject>())
                 if (o.name.StartsWith("PlayerCharacter"))
-                    log.LogInfo($"RAPPORT PlayerCharacter owner={o.OwnerClientId} spawned={o.IsSpawned} active={o.gameObject.activeInHierarchy} pos={o.transform.position}");
+                    log.LogInfo($"REPORT PlayerCharacter owner={o.OwnerClientId} spawned={o.IsSpawned} active={o.gameObject.activeInHierarchy} pos={o.transform.position}");
         }
-        catch (Exception e) { log.LogError("RAPPORT a echoue : " + e); }
+        catch (Exception e) { log.LogError("REPORT failed: " + e); }
     }
 }
 
@@ -63,10 +63,10 @@ public static class CoopWarp
             NetworkPlayer p2 = null;
             foreach (var np in UnityEngine.Object.FindObjectsOfType<NetworkPlayer>())
                 if (np.OwnerClientId == 1UL) p2 = np;
-            if (host == null || p2 == null || host.Character == null || p2.Character == null) { log.LogWarning("PUPPET: introuvable"); return; }
+            if (host == null || p2 == null || host.Character == null || p2.Character == null) { log.LogWarning("PUPPET: not found"); return; }
             Puppet.Attach(p2.Character.transform, host.Character.transform);
         }
-        catch (System.Exception e) { log.LogError("PUPPET attache a echoue : " + e); }
+        catch (System.Exception e) { log.LogError("PUPPET attach failed: " + e); }
     }
 
     public static void WarpPlayer2NearHost()
@@ -79,18 +79,18 @@ public static class CoopWarp
             foreach (var np in UnityEngine.Object.FindObjectsOfType<NetworkPlayer>())
                 if (np.OwnerClientId == 1UL) p2 = np;
             if (host == null || p2 == null || host.Character == null || p2.Character == null)
-            { log.LogWarning("WARP: host/joueur2/personnage introuvable"); return; }
+            { log.LogWarning("WARP: host/player2/character not found"); return; }
             var pos = host.Character.transform.position + host.Character.transform.right * 1.5f;
-            log.LogInfo($"WARP: joueur 2 -> {pos}");
+            log.LogInfo($"WARP: player 2 -> {pos}");
             var rot = host.Character.transform.rotation;
             var c2 = p2.Character;
             try { c2.ToggleSimulation(true); log.LogInfo("WARP: Character.ToggleSimulation(true) ok"); } catch (System.Exception e0) { log.LogWarning("WARP: ToggleSimulation(Character) : " + e0.Message); }
             try { c2.Movement.ToggleSimulation(true); log.LogInfo("WARP: Movement.ToggleSimulation(true) ok"); } catch (System.Exception e0) { log.LogWarning("WARP: ToggleSimulation(Movement) : " + e0.Message); }
             try { c2.Movement.Motor.SetPositionAndRotation(pos, rot, true); log.LogInfo("WARP: Motor.SetPositionAndRotation ok"); } catch (System.Exception e1) { log.LogWarning("WARP: Motor : " + e1.Message); }
             try { c2.Warp(pos, new Il2CppSystem.Nullable<UnityEngine.Quaternion>(rot)); log.LogInfo("WARP: Warp() ok"); } catch (System.Exception e2) { log.LogWarning("WARP: Warp : " + e2.Message); }
-            log.LogInfo($"WARP: position apres = {c2.transform.position}");
+            log.LogInfo($"WARP: position after = {c2.transform.position}");
         }
-        catch (System.Exception e) { log.LogError("WARP a echoue : " + e); }
+        catch (System.Exception e) { log.LogError("WARP failed: " + e); }
     }
 }
 

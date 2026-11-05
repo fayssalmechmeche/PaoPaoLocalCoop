@@ -22,12 +22,12 @@ public static class ProcessPriority
             using var me = Process.GetCurrentProcess();
             if (me.PriorityClass == want) return;
             me.PriorityClass = want;
-            Plugin.Instance.Log.LogInfo($"Priorite de cette fenetre : {want}");
+            Plugin.Instance.Log.LogInfo($"This window's priority: {want}");
         }
         catch (Exception e)
         {
             _disabled = true;
-            Plugin.Instance.Log.LogError("Priorite : desactivee suite a une erreur : " + e.Message);
+            Plugin.Instance.Log.LogError("Priority: disabled after an error: " + e.Message);
         }
     }
 }

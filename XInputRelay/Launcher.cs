@@ -56,7 +56,7 @@ internal static class Launcher
                     "Otherwise, set its folder in options.ini."));
             return;
         }
-        Log("Jeu : " + game.Dir + " (appid " + game.AppId + ")");
+        Log("Game: " + game.Dir + " (appid " + game.AppId + ")");
 
         if (Process.GetProcessesByName(GameProcess).Length > 0)
         {
@@ -129,11 +129,11 @@ internal static class Launcher
 
         // By default each window opens on the menu (Local co-op > Host / Join).
         // Automatic start: window 1 hosts the last played world, window 2 joins it.
-        StartGame(game, options, options.AutoStart ? new[] { "--coop-host" } : new[] { "--coop-local", "--coop-fenetre", "1" },
-                  Path.Combine(logs, "coop_joueur1.log"));
+        StartGame(game, options, options.AutoStart ? new[] { "--coop-host" } : new[] { "--coop-local", "--coop-window", "1" },
+                  Path.Combine(logs, "coop_player1.log"));
         Thread.Sleep(5000);
-        StartGame(game, options, options.AutoStart ? new[] { "--coop-join" } : new[] { "--coop-local", "--coop-fenetre", "2" },
-                  Path.Combine(logs, "coop_joueur2.log"));
+        StartGame(game, options, options.AutoStart ? new[] { "--coop-join" } : new[] { "--coop-local", "--coop-window", "2" },
+                  Path.Combine(logs, "coop_player2.log"));
     }
 
     private static void StartGame(Game game, Options options, string[] role, string logFile)
@@ -201,7 +201,7 @@ internal static class Launcher
         old.Version = version;
         old.Full = old.Full || full;
         old.Write(manifestPath);
-        Log("Installation terminee (version " + version + ", complete=" + old.Full + ")");
+        Log("Installation complete (version " + version + ", full=" + old.Full + ")");
         return true;
     }
 
@@ -357,12 +357,12 @@ internal static class Launcher
         catch { }
     }
 
-    // --yes (or --oui): answers "Yes" to all questions and shows no dialog (silent install, tests).
-    private static readonly bool Auto = Array.Exists(Environment.GetCommandLineArgs(), a => a == "--yes" || a == "--oui");
+    // --yes: answers "Yes" to all questions and shows no dialog (silent install, tests).
+    private static readonly bool Auto = Array.Exists(Environment.GetCommandLineArgs(), a => a == "--yes");
 
     private static void Info(string msg) { if (Auto) Log("INFO " + msg); else MessageBoxW(IntPtr.Zero, msg, Title, 0x40); }
-    private static void Error(string msg) { if (Auto) Log("ERREUR " + msg); else MessageBoxW(IntPtr.Zero, msg, Title, 0x10); }
-    private static bool Ask(string msg) { if (Auto) { Log("QUESTION (oui) " + msg); return true; } return MessageBoxW(IntPtr.Zero, msg, Title, 0x24) == 6; }
+    private static void Error(string msg) { if (Auto) Log("ERROR " + msg); else MessageBoxW(IntPtr.Zero, msg, Title, 0x10); }
+    private static bool Ask(string msg) { if (Auto) { Log("QUESTION (yes) " + msg); return true; } return MessageBoxW(IntPtr.Zero, msg, Title, 0x24) == 6; }
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int MessageBoxW(IntPtr hwnd, string text, string caption, uint type);
     [DllImport("kernel32.dll")] private static extern ushort GetUserDefaultUILanguage();
@@ -382,12 +382,11 @@ internal static class Launcher
                 int i = line.IndexOf('=');
                 if (i < 0) continue;
                 string k = line.Substring(0, i).Trim(), v = line.Substring(i + 1).Trim();
-                bool yes = v == "yes" || v == "oui";
-                // The French keys are those of previous versions.
+                bool yes = v == "yes";
                 if (k == "version") m.Version = v;
-                else if (k == "game" || k == "jeu") m.GameSig = v;
-                else if (k == "full" || k == "complet") m.Full = yes;
-                else if (k == "appid_created" || k == "appid_cree") m.AppIdCreated = yes;
+                else if (k == "game") m.GameSig = v;
+                else if (k == "full") m.Full = yes;
+                else if (k == "appid_created") m.AppIdCreated = yes;
             }
             return m;
         }
@@ -415,11 +414,10 @@ internal static class Launcher
                 string line = raw.Trim();
                 if (line.StartsWith("#") || line.IndexOf('=') < 0) continue;
                 string k = line.Substring(0, line.IndexOf('=')).Trim(), v = line.Substring(line.IndexOf('=') + 1).Trim();
-                bool yes = v == "oui" || v == "yes" || v == "true" || v == "1";
-                // The French keys are those of previous versions.
-                if (k == "hide_taskbar" || k == "cacher_barre_des_taches") o.HideTaskbar = yes;
-                else if (k == "auto_start" || k == "demarrage_auto") o.AutoStart = yes;
-                else if (k == "game_folder" || k == "dossier_du_jeu") o.GameDir = v;
+                bool yes = v == "yes" || v == "true" || v == "1";
+                if (k == "hide_taskbar") o.HideTaskbar = yes;
+                else if (k == "auto_start") o.AutoStart = yes;
+                else if (k == "game_folder") o.GameDir = v;
             }
             return o;
         }

@@ -17,10 +17,10 @@ public static class TwoInstances
         {
             log.LogInfo($"F7: FastStart WORLD_NAME={FastStart.WORLD_NAME} ClientIndex={FastStart.ClientIndex}");
             FastStart.StartServer();
-            log.LogInfo("F7: FastStart.StartServer() appele");
+            log.LogInfo("F7: FastStart.StartServer() called");
             LogTransport();
         }
-        catch (Exception e) { log.LogError("F7 a echoue : " + e); }
+        catch (Exception e) { log.LogError("F7 failed: " + e); }
     }
 
     public static void Join()
@@ -31,10 +31,10 @@ public static class TwoInstances
             PlatformDebug.UserIdOverride = "local-coop-player-2";
             log.LogInfo($"F8: UserIdOverride={PlatformDebug.UserIdOverride} ClientIndex={FastStart.ClientIndex}");
             FastStart.StartClient();
-            log.LogInfo("F8: FastStart.StartClient() appele");
+            log.LogInfo("F8: FastStart.StartClient() called");
             LogTransport();
         }
-        catch (Exception e) { log.LogError("F8 a echoue : " + e); }
+        catch (Exception e) { log.LogError("F8 failed: " + e); }
     }
 
     private static void LogTransport()

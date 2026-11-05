@@ -27,22 +27,22 @@ public static class InputAssign
         try
         {
             // Re-applied on every pass: the game may restore its own settings after us.
-            if (!Application.runInBackground) { Application.runInBackground = true; Note("runInBackground etait desactive, reactive"); }
+            if (!Application.runInBackground) { Application.runInBackground = true; Note("runInBackground was disabled, re-enabled"); }
             var s = InputSystem.settings;
             if (s.backgroundBehavior != InputSettings.BackgroundBehavior.IgnoreFocus)
             {
                 s.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-                Note(_settingsApplied ? "le jeu avait remis backgroundBehavior, reimpose" : "backgroundBehavior = IgnoreFocus");
+                Note(_settingsApplied ? "the game had restored backgroundBehavior, re-applied" : "backgroundBehavior = IgnoreFocus");
             }
             _settingsApplied = true;
             Assign();
             SchemeSync.Tick();
             Diagnose();
         }
-        catch (Exception e) { Plugin.Instance.Log.LogError("Manettes : " + e.Message); }
+        catch (Exception e) { Plugin.Instance.Log.LogError("Gamepads: " + e.Message); }
     }
 
-    private static void Note(string msg) => Plugin.Instance.Log.LogInfo("Manettes : " + msg);
+    private static void Note(string msg) => Plugin.Instance.Log.LogInfo("Gamepads: " + msg);
 
     // State report (every 5 s, only when it changes) to understand out-of-focus behavior.
     private static int _diagCount;
@@ -50,7 +50,7 @@ public static class InputAssign
     private static void Diagnose()
     {
         if (++_diagCount % 25 != 0) return;
-        var d = $"premierPlan={WindowLayout.IsForeground()} focus={Application.isFocused} bg={InputSystem.settings.backgroundBehavior} injection={(XInputFeed.Fed > 0 ? "oui" : "non")}";
+        var d = $"foreground={WindowLayout.IsForeground()} focus={Application.isFocused} bg={InputSystem.settings.backgroundBehavior} injection={(XInputFeed.Fed > 0 ? "yes" : "no")}";
         XInputFeed.Fed = 0;
         var pads = Gamepad.all;
         for (int i = 0; i < pads.Count; i++)
@@ -60,7 +60,7 @@ public static class InputAssign
         }
         if (d == _lastDiag) return;
         _lastDiag = d;
-        Plugin.Instance.Log.LogInfo("ETAT " + d);
+        Plugin.Instance.Log.LogInfo("STATE " + d);
     }
 
     private static void Assign()
@@ -81,12 +81,12 @@ public static class InputAssign
             else continue; // other devices (touchscreen, etc.): left alone
             if (want && !d.enabled) InputSystem.EnableDevice(d);
             if (!want && d.enabled) InputSystem.DisableDevice(d);
-            summary += $"{d.displayName}={(want ? "OUI" : "non")}; ";
+            summary += $"{d.displayName}={(want ? "YES" : "no")}; ";
         }
         if (summary != _lastSummary)
         {
             _lastSummary = summary;
-            Plugin.Instance.Log.LogInfo($"Manettes ({n} detectee(s)) : {summary}");
+            Plugin.Instance.Log.LogInfo($"Gamepads ({n} detected): {summary}");
         }
     }
 }

@@ -12,7 +12,9 @@ Unofficial mod for **PAO PAO**: local split-screen co-op on one PC with two cont
 
 `CoopLocal/_legacy/` holds old exploration code. It is not compiled.
 
-Player documentation: [`Package/docs/README.txt`](Package/docs/README.txt) (FR/EN).
+Player documentation: [`Package/docs/README.txt`](Package/docs/README.txt).
+
+The in-game menu and the launcher dialogs are shown in French or English, depending on the game and Windows language.
 
 ## Build
 

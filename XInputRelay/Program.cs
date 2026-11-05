@@ -28,13 +28,12 @@ internal static class Program
 
     // No option: launcher (installs if needed, then starts the game twice).
     // --relay: controller relay (started by the launcher, windowless).
-    // The French options (--relais, --desinstaller...) are those of previous versions.
     private static void Main(string[] args)
     {
         if (args.Length == 0) { Launcher.Run(); return; }
-        if (args[0] == "--uninstall" || args[0] == "--desinstaller") { Launcher.Uninstall(); return; }
-        if (args[0] == "--show-taskbar" || args[0] == "--reafficher-barre") { Taskbar.ForceShow(); return; }
-        bool relay = args[0] == "--relay" || args[0] == "--relais";
+        if (args[0] == "--uninstall") { Launcher.Uninstall(); return; }
+        if (args[0] == "--show-taskbar") { Taskbar.ForceShow(); return; }
+        bool relay = args[0] == "--relay";
         if (!relay && args[0] != "--hold" && args[0] != "--simulate") { Launcher.Run(); return; }
         if (args.Length > 1 && args[0] == "--hold")
         {
@@ -57,9 +56,9 @@ internal static class Program
         using var map = MemoryMappedFile.CreateOrOpen(MapName, 4 * SlotSize);
         using var view = map.CreateViewAccessor();
 
-        int j = Math.Max(Array.IndexOf(args, "--game"), Array.IndexOf(args, "--jeu"));
+        int j = Array.IndexOf(args, "--game");
         if (j >= 0 && j + 1 < args.Length) GameNames = new[] { args[j + 1] };
-        bool hideTaskbar = Array.IndexOf(args, "--hide-taskbar") >= 0 || Array.IndexOf(args, "--cacher-barre") >= 0;
+        bool hideTaskbar = Array.IndexOf(args, "--hide-taskbar") >= 0;
         if (hideTaskbar) Taskbar.HideWhilePlaying();
         try { Loop(view); }
         finally { Taskbar.Restore(); }

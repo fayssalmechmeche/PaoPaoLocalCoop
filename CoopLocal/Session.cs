@@ -28,7 +28,7 @@ public static class Session
     private const int MaxTries = 3;
 
     // Signals visible to the other window (same Windows session).
-    private const string HostReadySignal = "Local\\PaoPaoCoopLocalPartieOuverte";
+    private const string HostReadySignal = "Local\\PaoPaoCoopLocalGameOpen";
 
     private static Step _step = Step.Idle;
     private static float _t;
@@ -64,22 +64,22 @@ public static class Session
         }
         catch (Exception e)
         {
-            Log.LogError("Session : " + e);
-            Fail("Erreur inattendue : " + e.Message);
+            Log.LogError("Session: " + e);
+            Fail("Erreur inattendue : " + e.Message, "Unexpected error: " + e.Message);
             _step = Step.Done;
         }
     }
 
     public static void ClearError() => Error = "";
 
-    private static void Fail(string msg) { Error = msg; Log.LogError(msg); }
+    private static void Fail(string fr, string en) { Error = LocalMenu.T(fr, en); Log.LogError(en); }
 
     private static void Go(Step s) { _step = s; _stepT = 0f; }
 
-    private static bool TimedOut(float limit, string what)
+    private static bool TimedOut(float limit, string whatFr, string whatEn)
     {
         if (_stepT < limit) return false;
-        Fail($"HOTE : abandon, {what} (etape {_step}).");
+        Fail($"HOTE : abandon, {whatFr} (etape {_step}).", $"HOST: giving up, {whatEn} (step {_step}).");
         Go(Step.Done);
         return true;
     }
@@ -94,8 +94,8 @@ public static class Session
         Join = JoinState.Idle;
         FastStart.ResolveDependencies();
         var wsm = FastStart._worldStateManager;
-        if (wsm == null || FastStart._connectionModule == null) { Fail("HOTE : le jeu n'est pas pret, reessaie dans quelques secondes."); return false; }
-        Log.LogInfo($"HOTE : chargement du monde '{worldName}' ({worldId})");
+        if (wsm == null || FastStart._connectionModule == null) { Fail("HOTE : le jeu n'est pas pret, reessaie dans quelques secondes.", "HOST: the game is not ready, try again in a few seconds."); return false; }
+        Log.LogInfo($"HOST: loading world '{worldName}' ({worldId})");
         _worldTask = wsm.SetCurrentWorld(worldId);
         Go(Step.LoadingWorld);
         return true;
@@ -116,13 +116,13 @@ public static class Session
                 var world = wsm._worldCollectionData?.LastPlayedWorld;
                 if (world == null || string.IsNullOrEmpty(world.WorldId))
                 {
-                    Log.LogWarning("HOTE : aucun monde joue trouve, utilisation du monde de test des developpeurs.");
+                    Log.LogWarning("HOST: no played world found, using the developers' test world.");
                     FastStart.StartServer();
                     _readySignal ??= new EventWaitHandle(false, EventResetMode.ManualReset, HostReadySignal);
                     Go(Step.Done);
                     return;
                 }
-                Log.LogInfo($"HOTE : chargement du dernier monde joue '{world.WorldName}' ({world.WorldId})");
+                Log.LogInfo($"HOST: loading last played world '{world.WorldName}' ({world.WorldId})");
                 _worldTask = wsm.SetCurrentWorld(world.WorldId);
                 Go(Step.LoadingWorld);
                 return;
@@ -130,7 +130,7 @@ public static class Session
             case Step.LoadingWorld:
                 bool loaded = _worldTask.Status != UniTaskStatus.Pending;
                 if (!loaded && _stepT < WorldLoadTimeout) return;
-                Log.LogInfo($"HOTE : monde pret (etat={_worldTask.Status}), ouverture de la partie coop locale");
+                Log.LogInfo($"HOST: world ready (state={_worldTask.Status}), opening the local co-op game");
                 FastStart.SetupConnectionData(0);
                 FastStart._connectionModule.StartHost();
                 Go(Step.Started);
@@ -138,27 +138,27 @@ public static class Session
 
             case Step.Started:
                 var nm = NetworkManager.Singleton;
-                if (nm == null || !nm.IsHost) { TimedOut(15f, "la partie ne s'est pas ouverte"); return; }
+                if (nm == null || !nm.IsHost) { TimedOut(15f, "la partie ne s'est pas ouverte", "the game did not open"); return; }
                 // The game accepts connections: notify the other window.
                 _readySignal ??= new EventWaitHandle(false, EventResetMode.ManualReset, HostReadySignal);
                 // Like the developers' tool: once the game is open, load the game map.
                 _loader = Container.Resolve<IGameStateLoader>();
-                Log.LogInfo($"HOTE : partie ouverte, chargement de la carte (etat actuel={_loader.CurrentState})");
+                Log.LogInfo($"HOST: game open, loading the map (current state={_loader.CurrentState})");
                 if (_loader.CurrentState != GameStateType.Gameplay) _loader.TransitionTo(GameStateType.Gameplay);
                 Go(Step.LoadingMap);
                 return;
 
             case Step.LoadingMap:
                 // Once the map is loaded, start the session: this is what creates the characters.
-                if (_loader.CurrentState != GameStateType.Gameplay || !_loader.Ready) { TimedOut(60f, "la carte ne se charge pas"); return; }
+                if (_loader.CurrentState != GameStateType.Gameplay || !_loader.Ready) { TimedOut(60f, "la carte ne se charge pas", "the map does not load"); return; }
                 var session = UnityEngine.Object.FindObjectOfType<NetworkSessionInstance>();
-                if (session == null) { TimedOut(60f, "pas de session"); return; }
+                if (session == null) { TimedOut(60f, "pas de session", "no session"); return; }
                 if (!session.IsGameStarted)
                 {
-                    Log.LogInfo("HOTE : carte chargee, demarrage de la session (creation des personnages)");
+                    Log.LogInfo("HOST: map loaded, starting the session (creating the characters)");
                     session.StartGame();
                 }
-                else Log.LogInfo("HOTE : carte chargee, session deja demarree");
+                else Log.LogInfo("HOST: map loaded, session already started");
                 Go(Step.Done);
                 return;
         }
@@ -182,7 +182,7 @@ public static class Session
         _joinT = 0f;
         _waitHost = waitHost;
         Join = JoinState.WaitingHost;
-        Log.LogInfo(HostAvailable() ? "CLIENT : partie locale trouvee" : "CLIENT : en attente d'une partie locale...");
+        Log.LogInfo(HostAvailable() ? "CLIENT: local game found" : "CLIENT: waiting for a local game...");
     }
 
     public static void CancelJoin()
@@ -192,7 +192,7 @@ public static class Session
         Role.Current = CoopRole.None;
         var nm = NetworkManager.Singleton;
         if (nm != null && nm.IsClient && !nm.IsConnectedClient) nm.Shutdown();
-        Log.LogInfo("CLIENT : recherche annulee");
+        Log.LogInfo("CLIENT: search cancelled");
     }
 
     private static float _waitHost = WaitHostMenu;
@@ -207,14 +207,14 @@ public static class Session
                 if (_joinT > _waitHost)
                 {
                     Join = JoinState.Failed;
-                    Fail("CLIENT : aucune partie locale trouvee.");
+                    Fail("CLIENT : aucune partie locale trouvee.", "CLIENT: no local game found.");
                 }
                 return;
 
             case JoinState.Connecting:
                 if (nm != null && nm.IsConnectedClient)
                 {
-                    Log.LogInfo("CLIENT : connecte a l'hote !");
+                    Log.LogInfo("CLIENT: connected to the host!");
                     Join = JoinState.Connected;
                     return;
                 }
@@ -228,7 +228,7 @@ public static class Session
                 if (_tries >= MaxTries)
                 {
                     Join = JoinState.Failed;
-                    Fail("CLIENT : impossible de rejoindre la partie locale.");
+                    Fail("CLIENT : impossible de rejoindre la partie locale.", "CLIENT: could not join the local game.");
                     return;
                 }
                 Connect();
@@ -243,7 +243,7 @@ public static class Session
         Join = JoinState.Connecting;
         FastStart.ResolveDependencies();
         PlatformDebug.UserIdOverride = "local-coop-player-2";
-        Log.LogInfo($"CLIENT : tentative de connexion {_tries}/{MaxTries}");
+        Log.LogInfo($"CLIENT: connection attempt {_tries}/{MaxTries}");
         FastStart.StartClient();
     }
 }

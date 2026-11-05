@@ -25,7 +25,7 @@ public class Probe : MonoBehaviour
         bool key = ProbeHelper.F9Pressed();
         if (ProbeHelper.KeyPressed(7)) TwoInstances.Host();
         if (ProbeHelper.KeyPressed(8)) TwoInstances.Join();
-        if (ProbeHelper.F10Pressed()) { Plugin.Instance.Log.LogInfo("F10 detecte"); Coop.SpawnPlayer2(); }
+        if (ProbeHelper.F10Pressed()) { Plugin.Instance.Log.LogInfo("F10 detected"); Coop.SpawnPlayer2(); }
         if (!key && _timer < 5f) return;
         _timer = 0f;
         if (_dumps >= 1 && !key) return;
@@ -91,7 +91,7 @@ public static class ProbeHelper
         try { foreach (var n in Input.GetJoystickNames()) sb.AppendLine("'" + n + "'"); } catch (Exception e) { sb.AppendLine("n/a " + e.Message); }
         var path = Path.Combine(BepInEx.Paths.BepInExRootPath, "dump_player.txt");
         File.WriteAllText(path, sb.ToString());
-        Plugin.Instance.Log.LogInfo("Rapport joueur ecrit : " + path);
+        Plugin.Instance.Log.LogInfo("Player report written: " + path);
     }
 
     public static void DumpCharacters()

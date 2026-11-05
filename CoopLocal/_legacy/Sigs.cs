@@ -27,7 +27,7 @@ public static class Sigs
         foreach (var n in names)
         {
             var t = asm.GetType(n);
-            w.WriteLine("##### " + n + (t == null ? " (introuvable)" : ""));
+            w.WriteLine("##### " + n + (t == null ? " (not found)" : ""));
             if (t == null) continue;
             foreach (var c in t.GetConstructors(f)) w.WriteLine("  ctor(" + string.Join(", ", c.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name)) + ")");
             foreach (var m in t.GetMethods(f).Where(m => !m.Name.StartsWith("get_") && !m.Name.StartsWith("set_") && !m.Name.StartsWith("add_") && !m.Name.StartsWith("remove_") && !m.Name.StartsWith("__") && !m.Name.StartsWith("_")))

@@ -26,11 +26,11 @@ public static class Puppet
         _rot = hostChar.rotation;
         ReadHostCollisionSetup(hostChar);
         // Disable whatever could overwrite our position.
-        try { int n = 0; foreach (var nt in p2Char.GetComponentsInChildren<Unity.Netcode.Components.NetworkTransform>(true)) { nt.enabled = false; n++; } Plugin.Instance.Log.LogInfo($"PUPPET: {n} NetworkTransform desactive(s)"); } catch (Exception e) { Plugin.Instance.Log.LogWarning("PUPPET NT: " + e.Message); }
+        try { int n = 0; foreach (var nt in p2Char.GetComponentsInChildren<Unity.Netcode.Components.NetworkTransform>(true)) { nt.enabled = false; n++; } Plugin.Instance.Log.LogInfo($"PUPPET: {n} NetworkTransform(s) disabled"); } catch (Exception e) { Plugin.Instance.Log.LogWarning("PUPPET NT: " + e.Message); }
         _avatar = p2Char.Find("Avatar");
         try { var rb = p2Char.GetComponent<Rigidbody>(); if (rb != null) rb.isKinematic = true; } catch { }
         try { var col = p2Char.GetComponent<CapsuleCollider>(); if (col != null) col.enabled = false; } catch { }
-        Plugin.Instance.Log.LogInfo($"PUPPET: attache, position de depart {_pos}");
+        Plugin.Instance.Log.LogInfo($"PUPPET: attached, start position {_pos}");
         PuppetVisuals.DumpAndFix(p2Char);
     }
 
@@ -70,7 +70,7 @@ public static class Puppet
             if (mv != null) _mask = mv.DefaultCollisionLayers.value;
         }
         catch (Exception e) { log.LogWarning("PUPPET collisions: " + e.Message); }
-        log.LogInfo($"PUPPET: capsule rayon={_radius} hauteur={_height} masque=0x{_mask:X}");
+        log.LogInfo($"PUPPET: capsule radius={_radius} height={_height} mask=0x{_mask:X}");
     }
 
     // Moves by 'delta', sliding along obstacles (2 attempts: direct, then slide).

@@ -15,9 +15,9 @@ public static class FocusPatch
             new Harmony("local.paopao.cooplocal.focus").Patch(
                 AccessTools.PropertyGetter(typeof(Application), nameof(Application.isFocused)),
                 prefix: new HarmonyMethod(typeof(FocusPatch), nameof(Prefix)));
-            Plugin.Instance.Log.LogInfo("Focus : la fenetre se comporte toujours comme active");
+            Plugin.Instance.Log.LogInfo("Focus: the window always behaves as active");
         }
-        catch (Exception e) { Plugin.Instance.Log.LogError("Focus : " + e.Message); }
+        catch (Exception e) { Plugin.Instance.Log.LogError("Focus: " + e.Message); }
     }
 
     private static bool Prefix(ref bool __result) { __result = true; return false; }

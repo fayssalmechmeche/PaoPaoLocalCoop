@@ -12,7 +12,7 @@ if (args.Length > 3 && args[2] == "--find") {
   return;
 }
 foreach (var tn in args.Skip(2)) {
-  var t = asm.GetType(tn); Console.WriteLine("##### " + tn + (t == null ? " (introuvable)" : " : " + N(() => t.BaseType?.FullName ?? "")));
+  var t = asm.GetType(tn); Console.WriteLine("##### " + tn + (t == null ? " (not found)" : " : " + N(() => t.BaseType?.FullName ?? "")));
   if (t == null) continue;
   foreach (var c in t.GetConstructors(f)) Console.WriteLine($"  ctor({N(() => string.Join(", ", c.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name)))})");
   foreach (var m in t.GetMethods(f)) Console.WriteLine($"  {(m.IsStatic ? "static " : "")}{N(() => m.ReturnType.Name)} {m.Name}({N(() => string.Join(", ", m.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name)))})");

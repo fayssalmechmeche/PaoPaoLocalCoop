@@ -40,7 +40,7 @@ public static class Sigs3
         foreach (var n in names)
         {
             var t = asms.Select(a => a.GetType(n)).FirstOrDefault(x => x != null);
-            w.WriteLine("##### " + n + (t == null ? " (introuvable)" : " : " + t.BaseType?.Name));
+            w.WriteLine("##### " + n + (t == null ? " (not found)" : " : " + t.BaseType?.Name));
             if (t == null) continue;
             if (t.IsEnum) { foreach (var v in Enum.GetNames(t)) w.WriteLine("  = " + v); continue; }
             foreach (var m in t.GetMethods(f).Where(m => !m.Name.StartsWith("get_") && !m.Name.StartsWith("set_") && !m.Name.StartsWith("add_") && !m.Name.StartsWith("remove_") && !m.Name.StartsWith("__")))

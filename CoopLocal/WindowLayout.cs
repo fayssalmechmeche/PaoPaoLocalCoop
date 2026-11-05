@@ -27,7 +27,7 @@ public static class WindowLayout
         if (_resolutionSet && _check < CheckEvery) return;
         _check = 0f;
         try { Apply(); }
-        catch (Exception e) { Plugin.Instance.Log.LogError("Fenetre : " + e.Message); }
+        catch (Exception e) { Plugin.Instance.Log.LogError("Window: " + e.Message); }
     }
 
     private static void Apply()
@@ -62,7 +62,7 @@ public static class WindowLayout
         if (r.Left == x && r.Top == y && r.Right - r.Left == w && r.Bottom - r.Top == h) return;
         SetWindowPos(_hwnd, IntPtr.Zero, x, y, w, h, SWP_SHOWWINDOW | SWP_NOZORDER);
         if (_moves++ < 5)
-            Plugin.Instance.Log.LogInfo($"Fenetre placee : x={x} y={y} largeur={w} hauteur={h} (avant : {r.Left},{r.Top} {r.Right - r.Left}x{r.Bottom - r.Top})");
+            Plugin.Instance.Log.LogInfo($"Window placed: x={x} y={y} width={w} height={h} (before: {r.Left},{r.Top} {r.Right - r.Left}x{r.Bottom - r.Top})");
     }
 
     // True if this game's window is the foreground window in Windows.

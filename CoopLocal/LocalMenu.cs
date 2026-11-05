@@ -40,7 +40,7 @@ public static class LocalMenu
         }
     }
 
-    private static string T(string fr, string en) => French ? fr : en;
+    internal static string T(string fr, string en) => French ? fr : en;
 
     // ---------------------------------------------------------------- installation
 
@@ -58,9 +58,9 @@ public static class LocalMenu
             Pre(nameof(UIMenuView.OnSingleGameClicked), nameof(LeaveLocalPrefix));
             h.Patch(AccessTools.Method(typeof(UIMenuView), nameof(UIMenuView.SwitchTab)),
                 postfix: new HarmonyMethod(typeof(LocalMenu), nameof(SwitchTabPostfix)));
-            Log.LogInfo("Menu : ligne \"Coop locale\" prete");
+            Log.LogInfo("Menu: \"Local co-op\" entry ready");
         }
-        catch (Exception e) { Log.LogError("Menu : " + e); }
+        catch (Exception e) { Log.LogError("Menu: " + e); }
     }
 
     public static void Tick(float dt)
@@ -78,7 +78,7 @@ public static class LocalMenu
                 Session.ClearError();
             }
         }
-        catch (Exception e) { Log.LogError("Menu : " + e.Message); }
+        catch (Exception e) { Log.LogError("Menu: " + e.Message); }
     }
 
     private static void TickMenu(float dt)
@@ -96,7 +96,7 @@ public static class LocalMenu
     {
         var coop = _menu._coopButton;
         var go = UnityEngine.Object.Instantiate(coop.gameObject, coop.transform.parent);
-        go.name = "CoopLocaleButton";
+        go.name = "CoopLocalButton";
         go.transform.SetSiblingIndex(coop.transform.GetSiblingIndex() + 1);
         _localButton = go.GetComponent<PawButton>();
         // The copy keeps the actions registered in the game's editor: we disable them and add ours.
@@ -108,7 +108,7 @@ public static class LocalMenu
 
         var parts = "";
         foreach (var c in go.GetComponentsInChildren<Component>(true)) parts += c.GetIl2CppType().Name + " ";
-        Log.LogInfo($"Menu : bouton \"Coop locale\" ajoute (persistants={clicked.GetPersistentEventCount()}) : {parts}");
+        Log.LogInfo($"Menu: \"Local co-op\" button added (persistent={clicked.GetPersistentEventCount()}): {parts}");
     }
 
     // ---------------------------------------------------------------- labels
@@ -155,7 +155,7 @@ public static class LocalMenu
             _menu.SwitchTab(UIMenuView.UIMenuTabs.Coop);
             EnterLocalTab();
         }
-        catch (Exception e) { Log.LogError("Menu : " + e); }
+        catch (Exception e) { Log.LogError("Menu: " + e); }
     }
 
     private static void OnHostClicked()
@@ -217,7 +217,7 @@ public static class LocalMenu
     {
         if (!_hostPending) return true;
         _hostPending = false;
-        Log.LogInfo($"Menu : Heberger -> monde {worldId} (le jeu demandait reseau={overNetwork})");
+        Log.LogInfo($"Menu: Host -> world {worldId} (the game requested network={overNetwork})");
         Session.HostWorld(worldId, "");
         return false;
     }
@@ -225,14 +225,14 @@ public static class LocalMenu
     private static bool CreateLobbyPrefix()
     {
         if (!_localTab) return true;
-        try { OnHostClicked(); } catch (Exception e) { Log.LogError("Menu : " + e); }
+        try { OnHostClicked(); } catch (Exception e) { Log.LogError("Menu: " + e); }
         return false;
     }
 
     private static bool ShowLobbiesPrefix()
     {
         if (!_localTab) return true;
-        try { OnJoinClicked(); } catch (Exception e) { Log.LogError("Menu : " + e); }
+        try { OnJoinClicked(); } catch (Exception e) { Log.LogError("Menu: " + e); }
         return false;
     }
 

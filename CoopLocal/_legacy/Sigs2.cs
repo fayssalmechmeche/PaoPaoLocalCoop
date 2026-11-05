@@ -20,7 +20,7 @@ public static class Sigs2
             Type[] types;
             try { types = Assembly.LoadFrom(Path.Combine(interop, dll)).GetTypes(); }
             catch (ReflectionTypeLoadException ex) { types = ex.Types.Where(t => t != null).ToArray(); }
-            catch (Exception e) { w.WriteLine($"##### {dll} ERREUR {e.Message}"); continue; }
+            catch (Exception e) { w.WriteLine($"##### {dll} ERROR {e.Message}"); continue; }
             w.WriteLine($"##### {dll} ({types.Length})");
             foreach (var t in types.OrderBy(t => t.FullName))
             {

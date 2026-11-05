@@ -44,7 +44,7 @@ public static unsafe class XInputFeed
         if (_hooked) return;
         _hooked = true;
         InputSystem.add_onBeforeUpdate((Il2CppSystem.Action)(Action)OnBeforeUpdate);
-        Plugin.Instance.Log.LogInfo("Manette virtuelle : branchee au debut de chaque image");
+        Plugin.Instance.Log.LogInfo("Virtual gamepad: hooked at the start of each frame");
     }
 
     private static void OnBeforeUpdate()
@@ -63,8 +63,8 @@ public static unsafe class XInputFeed
         {
             if (Pad == null)
             {
-                Pad = InputSystem.AddDevice("Gamepad", "CoopLocal Manette").TryCast<Gamepad>();
-                Plugin.Instance.Log.LogInfo($"Manette virtuelle creee (id={Pad?.deviceId})");
+                Pad = InputSystem.AddDevice("Gamepad", "CoopLocal Gamepad").TryCast<Gamepad>();
+                Plugin.Instance.Log.LogInfo($"Virtual gamepad created (id={Pad?.deviceId})");
                 if (Pad == null) { _disabled = true; return; }
             }
             ChooseSlot();
@@ -84,7 +84,7 @@ public static unsafe class XInputFeed
         catch (Exception e)
         {
             _disabled = true;
-            Plugin.Instance.Log.LogError("Manette virtuelle : desactivee suite a une erreur : " + e);
+            Plugin.Instance.Log.LogError("Virtual gamepad: disabled after an error: " + e);
         }
     }
 
@@ -107,7 +107,7 @@ public static unsafe class XInputFeed
         {
             Slot = slot;
             _lastPacket = uint.MaxValue;
-            Plugin.Instance.Log.LogInfo(slot >= 0 ? $"Manette virtuelle : lit la manette XInput n°{slot}" : "Manette virtuelle : aucune manette pour ce joueur");
+            Plugin.Instance.Log.LogInfo(slot >= 0 ? $"Virtual gamepad: reading XInput controller #{slot}" : "Virtual gamepad: no controller for this player");
             if (slot < 0) Send(default); // release everything
         }
     }
@@ -130,11 +130,11 @@ public static unsafe class XInputFeed
                 // Also keep the file open: otherwise its name disappears and a restarted relay would not find it.
                 _relayMap = MemoryMappedFile.OpenExisting("Local\\PaoPaoCoopXInput");
                 _relay = _relayMap.CreateViewAccessor();
-                Plugin.Instance.Log.LogInfo("Manette virtuelle : relais XInputRelay connecte");
+                Plugin.Instance.Log.LogInfo("Virtual gamepad: XInputRelay relay connected");
             }
             catch
             {
-                if (!_relayLogged) { _relayLogged = true; Plugin.Instance.Log.LogWarning("Manette virtuelle : relais XInputRelay introuvable, lecture directe"); }
+                if (!_relayLogged) { _relayLogged = true; Plugin.Instance.Log.LogWarning("Virtual gamepad: XInputRelay relay not found, reading directly"); }
             }
         }
         if (_relay == null) return XInputGetState((uint)slot, out st);

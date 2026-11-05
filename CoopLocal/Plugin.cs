@@ -20,8 +20,8 @@ public class Plugin : BasePlugin
         Instance = this;
         Role.Detect();
         Log.LogInfo(Role.Active
-            ? $"CoopLocal 0.3.0 charge. Fenetre {Role.Window}, {(Role.AutoStart ? "demarrage automatique (" + Role.Current + ")" : "choix dans le menu")}"
-            : "CoopLocal 0.3.0 charge. Lancement normal : le mod ne fait rien.");
+            ? $"CoopLocal 0.3.0 loaded. Window {Role.Window}, {(Role.AutoStart ? "automatic start (" + Role.Current + ")" : "menu selection")}"
+            : "CoopLocal 0.3.0 loaded. Normal launch: the mod does nothing.");
         if (!Role.Active) return;
 
         FocusPatch.Apply();

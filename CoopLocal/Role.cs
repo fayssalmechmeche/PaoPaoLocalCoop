@@ -5,7 +5,7 @@ namespace CoopLocal;
 public enum CoopRole { None, Host, Client }
 
 // Reads the launch options added by the launcher:
-//   --coop-local --coop-fenetre 1|2 : local co-op window; each player chooses in the menu
+//   --coop-local --coop-window 1|2 : local co-op window; each player chooses in the menu
 //                                     (Local co-op > Host / Join).
 //   --coop-host / --coop-join       : automatic start: window 1 hosts the last played world,
 //                                     window 2 joins it.
@@ -30,7 +30,7 @@ public static class Role
         else if (Array.IndexOf(args, "--coop-local") >= 0)
         {
             Active = true;
-            int i = Array.IndexOf(args, "--coop-fenetre");
+            int i = Array.IndexOf(args, "--coop-window");
             Window = i >= 0 && i + 1 < args.Length && args[i + 1] == "2" ? 2 : 1;
         }
     }

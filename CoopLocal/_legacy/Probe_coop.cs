@@ -29,15 +29,15 @@ public static class Probe
             var move = _svc != null ? _svc.Gameplay.Move.ReadValue<Vector2>().ToString() : "?";
             var ctl = _svc?.Gameplay.Move.activeControl;
             Plugin.Instance.Log.LogInfo(
-                $"SONDE premierPlan={WindowLayout.IsForeground()} focus={Application.isFocused} ips={_frames / _timer:F0} " +
+                $"PROBE foreground={WindowLayout.IsForeground()} focus={Application.isFocused} fps={_frames / _timer:F0} " +
                 $"timeScale={Time.timeScale} stick={(pad != null ? pad.leftStick.ReadValue().ToString() : "-")} " +
-                $"Move={move} ctl={(ctl != null ? ctl.path : "-")} schema={_svc?.ControlScheme} carte={_svc?.MapType} " +
-                $"bouge={Vector3.Distance(_lastPos, pos):F2}m | relais={XInputFeed.RelayActive} xinput n°{XInputFeed.Slot} code={XInputFeed.LastCode} " +
-                $"paquet={XInputFeed.LastPacket} LX={XInputFeed.LastLX} envois={XInputFeed.Fed} padId={pad?.deviceId} appuisA={XInputFeed.SouthPresses} | heures : input={UnityEngine.InputSystem.LowLevel.InputState.currentTime:F3} " +
-                $"realtime={Time.realtimeSinceStartupAsDouble:F3} modeMaj={UnityEngine.InputSystem.InputSystem.settings.updateMode}");
+                $"Move={move} ctl={(ctl != null ? ctl.path : "-")} scheme={_svc?.ControlScheme} map={_svc?.MapType} " +
+                $"moved={Vector3.Distance(_lastPos, pos):F2}m | relay={XInputFeed.RelayActive} xinput #{XInputFeed.Slot} code={XInputFeed.LastCode} " +
+                $"packet={XInputFeed.LastPacket} LX={XInputFeed.LastLX} sent={XInputFeed.Fed} padId={pad?.deviceId} pressesA={XInputFeed.SouthPresses} | times: input={UnityEngine.InputSystem.LowLevel.InputState.currentTime:F3} " +
+                $"realtime={Time.realtimeSinceStartupAsDouble:F3} updateMode={UnityEngine.InputSystem.InputSystem.settings.updateMode}");
             _lastPos = pos;
         }
-        catch (Exception e) { Plugin.Instance.Log.LogError("SONDE : " + e.Message); }
+        catch (Exception e) { Plugin.Instance.Log.LogError("PROBE: " + e.Message); }
         finally { _timer = 0f; _frames = 0; }
     }
 }

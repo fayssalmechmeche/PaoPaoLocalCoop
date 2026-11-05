@@ -1,0 +1,20 @@
+Composants tiers inclus dans ce paquet / Third-party components included in this package
+==================================================================================
+
+BepInEx (BepInEx 6, IL2CPP) - chargeur de mods / mod loader
+  https://github.com/BepInEx/BepInEx  -  licence LGPL-2.1
+  Inclus sans modification dans mod_files\BepInEx\core, winhttp.dll (Unity Doorstop),
+  doorstop_config.ini et le dossier dotnet.
+  Included unmodified. Source code available at the address above.
+
+Unity Doorstop (winhttp.dll)
+  https://github.com/NeighTools/UnityDoorstop  -  licence zlib / MIT-like
+
+HarmonyX / 0Harmony, MonoMod, Il2CppInterop, Cpp2IL, AsmResolver, Mono.Cecil, Iced, Capstone :
+  bibliotheques utilisees par BepInEx, sous leurs licences respectives (MIT / LGPL / Apache).
+  libraries used by BepInEx, under their own licences (MIT / LGPL / Apache).
+
+.NET runtime (dans PaoPaoLocalCoop.exe et dans le dossier dotnet) - licence MIT, (c) .NET Foundation
+
+PAO PAO est la propriete de ses auteurs (ArtDock). Ce paquet ne contient aucun fichier du jeu.
+PAO PAO belongs to its authors (ArtDock). This package contains no game file.

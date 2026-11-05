@@ -1,0 +1,8 @@
+bin/
+obj/
+publish/
+sortie/
+bepinex_base/
+*.zip
+*.dmp
+*.log

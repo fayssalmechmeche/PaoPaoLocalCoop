@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>CoopLocal</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GamePath>C:\Program Files (x86)\Steam\steamapps\common\PaoPao</GamePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BepInEx.Core"><HintPath>$(GamePath)\BepInEx\core\BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(GamePath)\BepInEx\core\BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(GamePath)\BepInEx\core\Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Common"><HintPath>$(GamePath)\BepInEx\core\Il2CppInterop.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GamePath)\BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(GamePath)\BepInEx\interop\Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GamePath)\BepInEx\interop\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GamePath)\BepInEx\interop\UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PawPaw.Game"><HintPath>$(GamePath)\BepInEx\interop\PawPaw.Game.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Netcode.Runtime"><HintPath>$(GamePath)\BepInEx\interop\Unity.Netcode.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Collections"><HintPath>$(GamePath)\BepInEx\interop\Unity.Collections.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UniTask"><HintPath>$(GamePath)\BepInEx\interop\UniTask.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Cinemachine"><HintPath>$(GamePath)\BepInEx\interop\Unity.Cinemachine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(GamePath)\BepInEx\interop\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PawPaw.Platform.Base"><HintPath>$(GamePath)/BepInEx/interop/PawPaw.Platform.Base.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Plugins.KCC"><HintPath>$(GamePath)/BepInEx/interop/Plugins.KCC.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GamePath)/BepInEx/interop/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PawPaw.Debug"><HintPath>$(GamePath)/BepInEx/interop/PawPaw.Debug.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PawPaw.Architecture"><HintPath>$(GamePath)/BepInEx/interop/PawPaw.Architecture.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputModule"><HintPath>$(GamePath)/BepInEx/interop/UnityEngine.InputModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PawPaw.UI"><HintPath>$(GamePath)/BepInEx/interop/PawPaw.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(GamePath)/BepInEx/interop/Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Localization"><HintPath>$(GamePath)/BepInEx/interop/Unity.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(GamePath)/BepInEx/interop/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(GamePath)/BepInEx/interop/UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Ancien code d'exploration (marionnette, sondes) : garde pour reference, non compile. -->
+    <Compile Remove="_ancien/**" />
+  </ItemGroup>
+</Project>

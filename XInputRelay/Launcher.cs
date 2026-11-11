@@ -94,17 +94,19 @@ internal static class Launcher
         var screens = ScreenSetup.Ordered();
         if (force || (!Auto && o.AskScreens && screens.Length >= 2))
         {
-            var current = new ScreenSetup.Choice { Dual = o.ScreenLayout == "dual", DontAsk = !o.AskScreens, Screen1 = o.Screen1, Screen2 = o.Screen2 };
+            var current = new ScreenSetup.Choice { Dual = o.ScreenLayout == "dual", DontAsk = !o.AskScreens, HideTaskbar = o.HideTaskbar, Screen1 = o.Screen1, Screen2 = o.Screen2 };
             var c = ScreenSetup.Ask(screens, current, T, Title);
             if (c == null) { Log("Screen choice cancelled"); return false; }
             o.ScreenLayout = c.Dual ? "dual" : "split";
             o.Screen1 = c.Screen1;
             o.Screen2 = c.Screen2;
             o.AskScreens = !c.DontAsk;
+            o.HideTaskbar = c.HideTaskbar;
             try
             {
                 Options.Save(AppDir, ("screen_layout", o.ScreenLayout), ("player1_screen", o.Screen1),
-                             ("player2_screen", o.Screen2), ("ask_screens", o.AskScreens ? "yes" : "no"));
+                             ("player2_screen", o.Screen2), ("ask_screens", o.AskScreens ? "yes" : "no"),
+                             ("hide_taskbar", o.HideTaskbar ? "yes" : "no"));
             }
             catch (Exception e) { Log("options.ini not saved: " + e.Message); }
         }
@@ -118,7 +120,7 @@ internal static class Launcher
             return true;
         }
         // Whole screen, not the work area: above the taskbar the window is wider than the game's maximum
-        // aspect ratio and the game adds black bars on the sides. The taskbars are hidden while playing (see Start).
+        // aspect ratio and the game adds black bars on the sides. The taskbar is hidden only if the players chose it.
         rects = new[] { ScreenSetup.Rect(s1, false), ScreenSetup.Rect(s2, false) };
         Log("Screens: player 1 on " + o.Screen1 + " (" + rects[0] + "), player 2 on " + o.Screen2 + " (" + rects[1] + ")");
         return true;
@@ -177,8 +179,7 @@ internal static class Launcher
         relay.ArgumentList.Add("--relay");
         relay.ArgumentList.Add("--game");
         relay.ArgumentList.Add(GameProcess);
-        // One screen per player: the windows cover the whole screens, so the taskbars are hidden too.
-        if (options.HideTaskbar || rects != null) relay.ArgumentList.Add("--hide-taskbar");
+        if (options.HideTaskbar) relay.ArgumentList.Add("--hide-taskbar");
         Process.Start(relay);
 
         // By default each window opens on the menu (Local co-op > Host / Join).

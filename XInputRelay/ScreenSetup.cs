@@ -9,7 +9,7 @@ internal static class ScreenSetup
 {
     public sealed class Choice
     {
-        public bool Dual, DontAsk;
+        public bool Dual, DontAsk, HideTaskbar;
         public string Screen1 = "", Screen2 = "";
     }
 
@@ -96,6 +96,13 @@ internal static class ScreenSetup
         identify.Click += (_, _) => Identify(screens);
         Row(identify);
 
+        var hideTaskbar = new CheckBox
+        {
+            Text = T("Cacher la barre des taches pendant la partie", "Hide the taskbar while playing"),
+            AutoSize = true, Checked = current.HideTaskbar,
+        };
+        Row(hideTaskbar);
+
         var dontAsk = new CheckBox
         {
             Text = T("Ne plus demander (pour changer plus tard : PaoPaoLocalCoop.exe --screens)",
@@ -135,6 +142,7 @@ internal static class ScreenSetup
         {
             Dual = dual.Checked,
             DontAsk = dontAsk.Checked,
+            HideTaskbar = hideTaskbar.Checked,
             Screen1 = Id(screens[cb1.SelectedIndex]),
             Screen2 = Id(screens[cb2.SelectedIndex]),
         };

@@ -117,7 +117,9 @@ internal static class Launcher
             Log("Screens: one screen per player requested but screens not found (" + o.Screen1 + ", " + o.Screen2 + "): split screen");
             return true;
         }
-        rects = new[] { ScreenSetup.Rect(s1, !o.HideTaskbar), ScreenSetup.Rect(s2, !o.HideTaskbar) };
+        // Whole screen, not the work area: above the taskbar the window is wider than the game's maximum
+        // aspect ratio and the game adds black bars on the sides. The taskbars are hidden while playing (see Start).
+        rects = new[] { ScreenSetup.Rect(s1, false), ScreenSetup.Rect(s2, false) };
         Log("Screens: player 1 on " + o.Screen1 + " (" + rects[0] + "), player 2 on " + o.Screen2 + " (" + rects[1] + ")");
         return true;
     }
@@ -175,7 +177,8 @@ internal static class Launcher
         relay.ArgumentList.Add("--relay");
         relay.ArgumentList.Add("--game");
         relay.ArgumentList.Add(GameProcess);
-        if (options.HideTaskbar) relay.ArgumentList.Add("--hide-taskbar");
+        // One screen per player: the windows cover the whole screens, so the taskbars are hidden too.
+        if (options.HideTaskbar || rects != null) relay.ArgumentList.Add("--hide-taskbar");
         Process.Start(relay);
 
         // By default each window opens on the menu (Local co-op > Host / Join).

@@ -29,6 +29,7 @@ TWO SCREENS
   With two screens or more, the launcher asks at start:
   - Split screen: both windows side by side on the main screen.
   - One screen per player: each window fills its own screen (full picture, normal text size).
+    The taskbars are hidden while playing and come back when the game closes.
     Choose which player goes on which screen; "Identify screens" shows each screen's number.
   Tick "Don't ask again" to keep your choice. To change it later: PaoPaoLocalCoop.exe --screens
 

@@ -10,7 +10,7 @@ internal static class ScreenSetup
     public sealed class Choice
     {
         public bool Dual, DontAsk, HideTaskbar;
-        public string Screen1 = "", Screen2 = "";
+        public string Screen1 = "", Screen2 = "", SplitScreen = "";
     }
 
     private static bool _ui;
@@ -42,8 +42,18 @@ internal static class ScreenSetup
         return $"{r.X},{r.Y},{r.Width},{r.Height}";
     }
 
-    // Returns null if the window is closed or cancelled.
-    public static Choice Ask(Screen[] screens, Choice current, Func<string, string, string> T, string title)
+    // Split screen on one screen: left half for window 1, right half for window 2.
+    public static string[] SplitRects(Screen s, bool workArea)
+    {
+        var r = workArea ? s.WorkingArea : s.Bounds;
+        int w = r.Width / 2;
+        return new[] { $"{r.X},{r.Y},{w},{r.Height}", $"{r.X + w},{r.Y},{w},{r.Height}" };
+    }
+
+    public static Screen Primary(Screen[] screens) => screens.FirstOrDefault(s => s.Primary) ?? screens[0];
+
+    // Returns null if the window is closed or cancelled. note: optional message shown at the top.
+    public static Choice Ask(Screen[] screens, Choice current, Func<string, string, string> T, string title, string note = null)
     {
         int n = screens.Length;
         string Label(int i) => T("Ecran ", "Screen ") + (i + 1) + (screens[i].Primary ? T(" (principal)", " (main)") : "") +
@@ -64,19 +74,32 @@ internal static class ScreenSetup
         }
         Label Text(string s) => new Label { Text = s, AutoSize = true, MaximumSize = new Size(560, 0) };
 
+        if (note != null)
+        {
+            var warn = Text(note);
+            warn.ForeColor = Color.DarkRed;
+            Row(warn);
+        }
         Row(Text(n >= 2
             ? T(n + " ecrans detectes. Comment voulez-vous jouer ?", n + " screens detected. How do you want to play?")
             : T("Un seul ecran detecte : seul l'ecran partage est possible.", "Only one screen detected: only split screen is possible.")));
-        var split = new RadioButton { Text = T("Ecran partage : les deux fenetres cote a cote sur l'ecran principal",
-                                               "Split screen: both windows side by side on the main screen"), AutoSize = true };
+        var split = new RadioButton { Text = T("Ecran partage : les deux fenetres cote a cote sur un ecran",
+                                               "Split screen: both windows side by side on one screen"), AutoSize = true };
         var dual = new RadioButton { Text = T("Un ecran par joueur", "One screen per player"), AutoSize = true, Enabled = n >= 2 };
-        Row(split);
-        Row(dual);
 
+        var cbS = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
         var cb1 = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
         var cb2 = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
-        for (int i = 0; i < n; i++) { cb1.Items.Add(Label(i)); cb2.Items.Add(Label(i)); }
+        for (int i = 0; i < n; i++) { cbS.Items.Add(Label(i)); cb1.Items.Add(Label(i)); cb2.Items.Add(Label(i)); }
         int primary = Math.Max(0, Array.FindIndex(screens, s => s.Primary));
+        int iS = Array.FindIndex(screens, s => Id(s).Equals(current.SplitScreen, StringComparison.OrdinalIgnoreCase));
+        cbS.SelectedIndex = iS < 0 ? primary : iS;
+
+        Row(split);
+        var lS = Text(T("Ecran :", "Screen:"));
+        lS.Anchor = AnchorStyles.Left;
+        Row(lS, 1); Row(cbS, 1);
+        Row(dual);
         int i1 = Array.FindIndex(screens, s => Id(s).Equals(current.Screen1, StringComparison.OrdinalIgnoreCase));
         int i2 = Array.FindIndex(screens, s => Id(s).Equals(current.Screen2, StringComparison.OrdinalIgnoreCase));
         if (i1 < 0) i1 = primary;
@@ -118,7 +141,11 @@ internal static class ScreenSetup
         buttons.Controls.Add(ok);
         Row(buttons);
 
-        void Sync() => cb1.Enabled = cb2.Enabled = dual.Checked;
+        void Sync()
+        {
+            cb1.Enabled = cb2.Enabled = dual.Checked;
+            cbS.Enabled = split.Checked;
+        }
         dual.CheckedChanged += (_, _) => Sync();
         (current.Dual && n >= 2 ? dual : split).Checked = true;
         Sync();
@@ -145,6 +172,7 @@ internal static class ScreenSetup
             HideTaskbar = hideTaskbar.Checked,
             Screen1 = Id(screens[cb1.SelectedIndex]),
             Screen2 = Id(screens[cb2.SelectedIndex]),
+            SplitScreen = Id(screens[cbS.SelectedIndex]),
         };
     }
 

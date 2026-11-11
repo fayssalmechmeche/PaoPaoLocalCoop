@@ -84,46 +84,74 @@ internal static class Launcher
         Start(game, options, rects);
     }
 
-    // Split screen or one screen per player. Asks when 2 screens or more are connected (unless the players
-    // chose "don't ask again"), or always with force (--screens). rects: null = split screen, otherwise
-    // the screen rectangle of each window. Returns false if the players cancelled.
+    // Split screen or one screen per player. Asks when 2 screens or more are connected, unless the players
+    // chose "don't ask again" and their screens are still there; always asks with force (--screens).
+    // rects: the screen rectangle of each window. Returns false if the players cancelled.
     private static bool ChooseLayout(Options o, bool force, out string[] rects)
     {
         rects = null;
         ScreenSetup.InitUi();
         var screens = ScreenSetup.Ordered();
-        if (force || (!Auto && o.AskScreens && screens.Length >= 2))
+        string missing = MissingScreens(o, screens);
+        if (force || (!Auto && screens.Length >= 2 && (o.AskScreens || missing != null)))
         {
-            var current = new ScreenSetup.Choice { Dual = o.ScreenLayout == "dual", DontAsk = !o.AskScreens, HideTaskbar = o.HideTaskbar, Screen1 = o.Screen1, Screen2 = o.Screen2 };
-            var c = ScreenSetup.Ask(screens, current, T, Title);
+            string note = missing == null ? null
+                : T("L'ecran choisi la derniere fois n'est plus branche (" + missing + "). Choisis a nouveau.",
+                    "The screen chosen last time is no longer connected (" + missing + "). Please choose again.");
+            var current = new ScreenSetup.Choice
+            {
+                Dual = o.ScreenLayout == "dual", DontAsk = !o.AskScreens, HideTaskbar = o.HideTaskbar,
+                Screen1 = o.Screen1, Screen2 = o.Screen2, SplitScreen = o.SplitScreen,
+            };
+            var c = ScreenSetup.Ask(screens, current, T, Title, note);
             if (c == null) { Log("Screen choice cancelled"); return false; }
             o.ScreenLayout = c.Dual ? "dual" : "split";
             o.Screen1 = c.Screen1;
             o.Screen2 = c.Screen2;
+            o.SplitScreen = c.SplitScreen;
             o.AskScreens = !c.DontAsk;
             o.HideTaskbar = c.HideTaskbar;
             try
             {
                 Options.Save(AppDir, ("screen_layout", o.ScreenLayout), ("player1_screen", o.Screen1),
                              ("player2_screen", o.Screen2), ("ask_screens", o.AskScreens ? "yes" : "no"),
-                             ("hide_taskbar", o.HideTaskbar ? "yes" : "no"));
+                             ("hide_taskbar", o.HideTaskbar ? "yes" : "no"), ("split_screen", o.SplitScreen));
             }
             catch (Exception e) { Log("options.ini not saved: " + e.Message); }
         }
 
-        if (o.ScreenLayout != "dual") { Log("Screens: split screen"); return true; }
-        var s1 = ScreenSetup.Find(screens, o.Screen1);
-        var s2 = ScreenSetup.Find(screens, o.Screen2);
-        if (s1 == null || s2 == null || s1.DeviceName == s2.DeviceName)
+        if (o.ScreenLayout == "dual")
         {
+            var s1 = ScreenSetup.Find(screens, o.Screen1);
+            var s2 = ScreenSetup.Find(screens, o.Screen2);
+            if (s1 != null && s2 != null && s1.DeviceName != s2.DeviceName)
+            {
+                // Whole screen, not the work area: above the taskbar the window is wider than the game's maximum
+                // aspect ratio and the game adds black bars on the sides. The taskbar is hidden only if the players chose it.
+                rects = new[] { ScreenSetup.Rect(s1, false), ScreenSetup.Rect(s2, false) };
+                Log("Screens: player 1 on " + o.Screen1 + " (" + rects[0] + "), player 2 on " + o.Screen2 + " (" + rects[1] + ")");
+                return true;
+            }
             Log("Screens: one screen per player requested but screens not found (" + o.Screen1 + ", " + o.Screen2 + "): split screen");
-            return true;
         }
-        // Whole screen, not the work area: above the taskbar the window is wider than the game's maximum
-        // aspect ratio and the game adds black bars on the sides. The taskbar is hidden only if the players chose it.
-        rects = new[] { ScreenSetup.Rect(s1, false), ScreenSetup.Rect(s2, false) };
-        Log("Screens: player 1 on " + o.Screen1 + " (" + rects[0] + "), player 2 on " + o.Screen2 + " (" + rects[1] + ")");
+
+        // Split screen on the chosen screen (main screen if none or not found). With a visible taskbar,
+        // the windows stop above it.
+        var screen = ScreenSetup.Find(screens, o.SplitScreen) ?? ScreenSetup.Primary(screens);
+        rects = ScreenSetup.SplitRects(screen, !o.HideTaskbar);
+        Log("Screens: split screen on " + ScreenSetup.Id(screen) + " (" + rects[0] + " | " + rects[1] + ")");
         return true;
+    }
+
+    // Screens saved in options.ini that are no longer connected, or null if everything is there.
+    private static string MissingScreens(Options o, System.Windows.Forms.Screen[] screens)
+    {
+        var ids = o.ScreenLayout == "dual" ? new[] { o.Screen1, o.Screen2 } : new[] { o.SplitScreen };
+        var missing = Array.FindAll(ids, id => !string.IsNullOrWhiteSpace(id) && ScreenSetup.Find(screens, id) == null);
+        if (o.ScreenLayout == "dual" && (string.IsNullOrWhiteSpace(o.Screen1) || string.IsNullOrWhiteSpace(o.Screen2) ||
+                                         string.Equals(o.Screen1, o.Screen2, StringComparison.OrdinalIgnoreCase)))
+            return missing.Length > 0 ? string.Join(", ", missing) : "?";
+        return missing.Length > 0 ? string.Join(", ", missing) : null;
     }
 
     public static void ChooseScreens()
@@ -459,7 +487,7 @@ internal static class Launcher
     private sealed class Options
     {
         public bool HideTaskbar, AutoStart, AskScreens = true;
-        public string GameDir = "", ScreenLayout = "split", Screen1 = "", Screen2 = "";
+        public string GameDir = "", ScreenLayout = "split", Screen1 = "", Screen2 = "", SplitScreen = "";
 
         public static Options Load(string dir)
         {
@@ -478,6 +506,7 @@ internal static class Launcher
                 else if (k == "screen_layout") o.ScreenLayout = v.ToLowerInvariant() == "dual" ? "dual" : "split";
                 else if (k == "player1_screen") o.Screen1 = v;
                 else if (k == "player2_screen") o.Screen2 = v;
+                else if (k == "split_screen") o.SplitScreen = v;
                 else if (k == "ask_screens") o.AskScreens = !(v == "no" || v == "false" || v == "0");
             }
             return o;

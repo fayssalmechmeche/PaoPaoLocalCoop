@@ -27,11 +27,12 @@ HOW TO PLAY TOGETHER
 
 TWO SCREENS
   With two screens or more, the launcher asks at start:
-  - Split screen: both windows side by side on the main screen.
+  - Split screen: both windows side by side on the screen of your choice.
   - One screen per player: each window fills its own screen (full picture, normal text size).
     You can also choose to hide the taskbar while playing (it comes back when the game closes).
     Choose which player goes on which screen; "Identify screens" shows each screen's number.
   Tick "Don't ask again" to keep your choice. To change it later: PaoPaoLocalCoop.exe --screens
+  If a chosen screen is no longer connected, the launcher asks again.
 
 CONTROLS
   - Each player uses their own gamepad. First gamepad plugged in = left window,

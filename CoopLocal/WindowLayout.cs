@@ -6,6 +6,7 @@ using UnityEngine;
 namespace CoopLocal;
 
 // Split screen: borderless window, window 1 on the left half, window 2 on the right half.
+// One screen per player (--coop-rect x,y,width,height from the launcher): the window fills that rectangle.
 // Window 2 is muted so that everything is not heard twice.
 public static class WindowLayout
 {
@@ -44,6 +45,7 @@ public static class WindowLayout
         int w = screenW / 2, h = screenH;
         int x = originX + (Role.IsFirstWindow ? 0 : w);
         int y = originY;
+        if (OwnRect != null) { x = OwnRect[0]; y = OwnRect[1]; w = OwnRect[2]; h = OwnRect[3]; }
 
         // The game may restore its own resolution (saved settings): re-apply ours if needed.
         if (Screen.fullScreenMode != FullScreenMode.Windowed || Screen.width != w || Screen.height != h)
@@ -91,6 +93,21 @@ public static class WindowLayout
     }
 
     private static readonly bool UseWorkArea = Array.IndexOf(Environment.GetCommandLineArgs(), "--coop-workarea") >= 0;
+    private static readonly int[] OwnRect = ParseRect();
+
+    // --coop-rect x,y,width,height (physical pixels). null if absent or invalid.
+    private static int[] ParseRect()
+    {
+        var args = Environment.GetCommandLineArgs();
+        int i = Array.IndexOf(args, "--coop-rect");
+        if (i < 0 || i + 1 >= args.Length) return null;
+        var parts = args[i + 1].Split(',');
+        if (parts.Length != 4) return null;
+        var r = new int[4];
+        for (int k = 0; k < 4; k++)
+            if (!int.TryParse(parts[k].Trim(), out r[k])) return null;
+        return r[2] > 0 && r[3] > 0 ? r : null;
+    }
 
     private const int SM_CXSCREEN = 0, SM_CYSCREEN = 1, SPI_GETWORKAREA = 0x0030;
     private const uint SWP_NOZORDER = 0x0004, SWP_SHOWWINDOW = 0x0040;

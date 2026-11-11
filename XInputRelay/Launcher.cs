@@ -65,6 +65,8 @@ internal static class Launcher
             return;
         }
 
+        if (!ChooseLayout(options, false, out var rects)) return;
+
         var manifestPath = ManifestPath(game);
         var manifest = Manifest.Read(manifestPath);
         if (!Install(game, manifest, manifestPath)) return;
@@ -79,7 +81,56 @@ internal static class Launcher
             manifest.Write(manifestPath);
         }
 
-        Start(game, options);
+        Start(game, options, rects);
+    }
+
+    // Split screen or one screen per player. Asks when 2 screens or more are connected (unless the players
+    // chose "don't ask again"), or always with force (--screens). rects: null = split screen, otherwise
+    // the screen rectangle of each window. Returns false if the players cancelled.
+    private static bool ChooseLayout(Options o, bool force, out string[] rects)
+    {
+        rects = null;
+        ScreenSetup.InitUi();
+        var screens = ScreenSetup.Ordered();
+        if (force || (!Auto && o.AskScreens && screens.Length >= 2))
+        {
+            var current = new ScreenSetup.Choice { Dual = o.ScreenLayout == "dual", DontAsk = !o.AskScreens, Screen1 = o.Screen1, Screen2 = o.Screen2 };
+            var c = ScreenSetup.Ask(screens, current, T, Title);
+            if (c == null) { Log("Screen choice cancelled"); return false; }
+            o.ScreenLayout = c.Dual ? "dual" : "split";
+            o.Screen1 = c.Screen1;
+            o.Screen2 = c.Screen2;
+            o.AskScreens = !c.DontAsk;
+            try
+            {
+                Options.Save(AppDir, ("screen_layout", o.ScreenLayout), ("player1_screen", o.Screen1),
+                             ("player2_screen", o.Screen2), ("ask_screens", o.AskScreens ? "yes" : "no"));
+            }
+            catch (Exception e) { Log("options.ini not saved: " + e.Message); }
+        }
+
+        if (o.ScreenLayout != "dual") { Log("Screens: split screen"); return true; }
+        var s1 = ScreenSetup.Find(screens, o.Screen1);
+        var s2 = ScreenSetup.Find(screens, o.Screen2);
+        if (s1 == null || s2 == null || s1.DeviceName == s2.DeviceName)
+        {
+            Log("Screens: one screen per player requested but screens not found (" + o.Screen1 + ", " + o.Screen2 + "): split screen");
+            return true;
+        }
+        rects = new[] { ScreenSetup.Rect(s1, !o.HideTaskbar), ScreenSetup.Rect(s2, !o.HideTaskbar) };
+        Log("Screens: player 1 on " + o.Screen1 + " (" + rects[0] + "), player 2 on " + o.Screen2 + " (" + rects[1] + ")");
+        return true;
+    }
+
+    public static void ChooseScreens()
+    {
+        try
+        {
+            var options = Options.Load(AppDir);
+            if (ChooseLayout(options, true, out _))
+                Info(T("Choix enregistre. Il sera utilise au prochain lancement.", "Choice saved. It will be used at the next start."));
+        }
+        catch (Exception e) { Log(e.ToString()); Error(e.Message); }
     }
 
     // First launch of the game alone: BepInEx generates its files (1 to 3 minutes). Two windows at the same
@@ -114,7 +165,7 @@ internal static class Launcher
         return true;
     }
 
-    private static void Start(Game game, Options options)
+    private static void Start(Game game, Options options, string[] rects)
     {
         string logs = Path.Combine(DataDir, "logs");
         Directory.CreateDirectory(logs);
@@ -130,16 +181,18 @@ internal static class Launcher
         // By default each window opens on the menu (Local co-op > Host / Join).
         // Automatic start: window 1 hosts the last played world, window 2 joins it.
         StartGame(game, options, options.AutoStart ? new[] { "--coop-host" } : new[] { "--coop-local", "--coop-window", "1" },
-                  Path.Combine(logs, "coop_player1.log"));
+                  rects?[0], Path.Combine(logs, "coop_player1.log"));
         Thread.Sleep(5000);
         StartGame(game, options, options.AutoStart ? new[] { "--coop-join" } : new[] { "--coop-local", "--coop-window", "2" },
-                  Path.Combine(logs, "coop_player2.log"));
+                  rects?[1], Path.Combine(logs, "coop_player2.log"));
     }
 
-    private static void StartGame(Game game, Options options, string[] role, string logFile)
+    private static void StartGame(Game game, Options options, string[] role, string rect, string logFile)
     {
         var psi = new ProcessStartInfo(game.Exe) { WorkingDirectory = game.Dir, UseShellExecute = false };
         foreach (var a in role) psi.ArgumentList.Add(a);
+        // One screen per player: the window fills this screen rectangle.
+        if (rect != null) { psi.ArgumentList.Add("--coop-rect"); psi.ArgumentList.Add(rect); }
         psi.ArgumentList.Add("-popupwindow");
         psi.ArgumentList.Add("-logFile");
         psi.ArgumentList.Add(logFile);
@@ -401,8 +454,8 @@ internal static class Launcher
     // Settings from options.ini (next to the program).
     private sealed class Options
     {
-        public bool HideTaskbar, AutoStart;
-        public string GameDir = "";
+        public bool HideTaskbar, AutoStart, AskScreens = true;
+        public string GameDir = "", ScreenLayout = "split", Screen1 = "", Screen2 = "";
 
         public static Options Load(string dir)
         {
@@ -418,8 +471,31 @@ internal static class Launcher
                 if (k == "hide_taskbar") o.HideTaskbar = yes;
                 else if (k == "auto_start") o.AutoStart = yes;
                 else if (k == "game_folder") o.GameDir = v;
+                else if (k == "screen_layout") o.ScreenLayout = v.ToLowerInvariant() == "dual" ? "dual" : "split";
+                else if (k == "player1_screen") o.Screen1 = v;
+                else if (k == "player2_screen") o.Screen2 = v;
+                else if (k == "ask_screens") o.AskScreens = !(v == "no" || v == "false" || v == "0");
             }
             return o;
+        }
+
+        // Replaces the given keys in options.ini (comments and other lines are kept), or adds them at the end.
+        public static void Save(string dir, params (string Key, string Value)[] values)
+        {
+            string path = Path.Combine(dir, "options.ini");
+            var lines = File.Exists(path) ? new List<string>(File.ReadAllLines(path)) : new List<string>();
+            foreach (var (key, value) in values)
+            {
+                int i = lines.FindIndex(l =>
+                {
+                    string t = l.Trim();
+                    int eq = t.IndexOf('=');
+                    return !t.StartsWith("#") && eq > 0 && t.Substring(0, eq).Trim() == key;
+                });
+                if (i >= 0) lines[i] = key + "=" + value;
+                else lines.Add(key + "=" + value);
+            }
+            File.WriteAllLines(path, lines);
         }
     }
 }

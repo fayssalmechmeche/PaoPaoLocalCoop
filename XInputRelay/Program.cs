@@ -28,10 +28,13 @@ internal static class Program
 
     // No option: launcher (installs if needed, then starts the game twice).
     // --relay: controller relay (started by the launcher, windowless).
+    // --screens: only shows the screen choice window.
+    [STAThread]
     private static void Main(string[] args)
     {
         if (args.Length == 0) { Launcher.Run(); return; }
         if (args[0] == "--uninstall") { Launcher.Uninstall(); return; }
+        if (args[0] == "--screens") { Launcher.ChooseScreens(); return; }
         if (args[0] == "--show-taskbar") { Taskbar.ForceShow(); return; }
         bool relay = args[0] == "--relay";
         if (!relay && args[0] != "--hold" && args[0] != "--simulate") { Launcher.Run(); return; }

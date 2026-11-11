@@ -1,6 +1,6 @@
 # PaoPaoLocalCoop
 
-Unofficial mod for **PAO PAO**: local split-screen co-op on one PC with two controllers (two game windows side by side).
+Unofficial mod for **PAO PAO**: local co-op on one PC with two controllers: two game windows side by side, or one screen per player when two screens are connected (chosen in the launcher, or with `PaoPaoLocalCoop.exe --screens`).
 
 | Folder | Role |
 |---|---|
@@ -28,7 +28,7 @@ Requirements: Windows 10/11 x64, .NET 8 SDK (plus the .NET 6 targeting pack), PA
 ## What the launcher and the mod change
 
 - Game folder: adds BepInEx, the plugin DLL, `steam_appid.txt` (needed to start the game outside Steam) and an install state file. No game file is modified. `PaoPaoLocalCoop.exe --uninstall` removes them.
-- Windows: reads the Steam install path from the registry and hides the taskbar while playing (it is restored when the game closes). The window that is not in the foreground gets a higher process priority.
+- Windows: reads the Steam install path from the registry and, if `hide_taskbar=yes`, hides the taskbar while playing (it is restored when the game closes). The screen choice is saved in `options.ini` next to the launcher. The window that is not in the foreground gets a higher process priority.
 - Network: the mod contains no network code of its own. The two windows connect to each other through the game's own multiplayer stack on the same PC.
 - BepInEx downloads: `UnityBaseLibrariesSource` is left empty in `Package/config/BepInEx.cfg` and the Unity base libraries are shipped extracted, so BepInEx downloads nothing and the package contains no nested archive.
 

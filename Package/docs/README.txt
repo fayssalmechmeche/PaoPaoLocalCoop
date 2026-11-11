@@ -1,9 +1,9 @@
 =====================================================================
-LOCAL CO-OP FOR PAO PAO  (unofficial mod)  -  version 0.3.1
+LOCAL CO-OP FOR PAO PAO  (unofficial mod)  -  version 0.3.2
 =====================================================================
 
 Play with two players on the SAME PC using two gamepads: the screen is split in two
-(one game window on the left, one on the right).
+(one game window on the left, one on the right), or one screen per player if you have two.
 
 REQUIREMENTS
   - PAO PAO (full game) installed in Steam, with Steam running and signed in.
@@ -25,6 +25,13 @@ HOW TO PLAY TOGETHER
     is open, then enters by itself (Cancel button to stop).
   - The normal (online) CO-OP button is unchanged.
 
+TWO SCREENS
+  With two screens or more, the launcher asks at start:
+  - Split screen: both windows side by side on the main screen.
+  - One screen per player: each window fills its own screen (full picture, normal text size).
+    Choose which player goes on which screen; "Identify screens" shows each screen's number.
+  Tick "Don't ask again" to keep your choice. To change it later: PaoPaoLocalCoop.exe --screens
+
 CONTROLS
   - Each player uses their own gamepad. First gamepad plugged in = left window,
     second = right window (whoever hosts).
@@ -41,6 +48,7 @@ OPTIONS  (options.ini file, next to the launcher)
   - Taskbar: hidden while playing, or visible (default).
   - Automatic start (auto_start=yes): skipping the menu, the left window loads the last world
     played and the right window joins it by itself.
+  - Screens: split screen or one screen per player, and whether to ask at start.
   - Game folder, if automatic detection cannot find it.
 
 TROUBLESHOOTING
